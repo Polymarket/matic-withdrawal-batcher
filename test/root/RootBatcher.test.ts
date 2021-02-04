@@ -139,14 +139,12 @@ describe("RootBatcher", function () {
     });
 
     it("sends a message to child contract of the processed deposits", async function () {
-      // TODO: change hardcoded values
       expect(await rootBatcher.bridgeDeposits(depositIds))
         .to.emit(stateSender, "StateSynced")
         .withArgs(1, stateSender.address /* This should be the child contract address */, expectedDepositMessage);
     });
 
     it("emits a BridgedDeposits event", async function () {
-      // TODO: change hardcoded values
       expect(await rootBatcher.bridgeDeposits(depositIds))
         .to.emit(rootBatcher, "BridgedDeposits")
         .withArgs(admin, expectedDepositMessage, totalDepositAmount);
