@@ -4,6 +4,7 @@ pragma solidity 0.6.8;
 
 import "hardhat/console.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IRootChainManager } from "./interfaces/IRootChainManager.sol";
 import { BaseRootTunnel } from "./BaseRootTunnel.sol";
 import { DepositEncoder } from "../common/DepositEncoder.sol";
 
@@ -13,17 +14,17 @@ contract RootBatcher is BaseRootTunnel {
     event Deposit(address indexed depositor, address indexed recipient, uint96 amount);
     event BridgedDeposits(address indexed bridger, bytes depositMessage, uint256 amount);
 
-    address public immutable erc20TokenPredicateProxy;
-    address public immutable rootChainManagerProxy;
+    address public immutable erc20TokenPredicate;
+    IRootChainManager public immutable rootChainManager;
     IERC20 public immutable depositToken;
 
     bytes32[] public deposits;
     uint256 public nextDepositId;
 
-    constructor(IERC20 _depositToken, address _rootChainManagerProxy, address _erc20TokenPredicateProxy) public {
+    constructor(IERC20 _depositToken, IRootChainManager _rootChainManager, address _erc20TokenPredicate) public {
         depositToken = _depositToken;
-        rootChainManagerProxy = _rootChainManagerProxy;
-        erc20TokenPredicateProxy = _erc20TokenPredicateProxy;
+        rootChainManager = _rootChainManager;
+        erc20TokenPredicate = _erc20TokenPredicate;
     }
 
     /**
@@ -54,8 +55,8 @@ contract RootBatcher is BaseRootTunnel {
         }
 
         // Deposit the amount of funds needed for newly processed deposits
-        depositToken.approve(erc20TokenPredicateProxy, depositAmount);
-        // rootChainManagerProxy.depositFor(address(this), address(depositToken), abi.encode(depositAmount));
+        depositToken.approve(erc20TokenPredicate, depositAmount);
+        rootChainManager.depositFor(address(this), address(depositToken), abi.encode(depositAmount));
 
         // Send a message to contract on Matic to allow recipients to withdraw
         _sendMessageToChild(depositMessage);

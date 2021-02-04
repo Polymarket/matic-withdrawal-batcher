@@ -7,7 +7,7 @@ import {RLPReader} from "../lib/RLPReader.sol";
 import {ITokenPredicate} from "../interfaces/ITokenPredicate.sol";
 import {Initializable} from "../../common/Matic/Initializable.sol";
 
-contract ERC20Predicate is ITokenPredicate, AccessControlMixin, Initializable {
+contract MockERC20Predicate is ITokenPredicate, AccessControlMixin, Initializable {
     using RLPReader for bytes;
     using RLPReader for RLPReader.RLPItem;
     using SafeERC20 for IERC20;

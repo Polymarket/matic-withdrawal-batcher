@@ -3,9 +3,9 @@ pragma solidity 0.6.8;
 import {IStateSender} from "../interfaces/IStateSender.sol";
 
 /**
-* @notice Dummy State Sender contract to simulate plasma state sender while testing
+* @notice Mock State Sender contract to simulate plasma state sender while testing
 */
-contract DummyStateSender is IStateSender {
+contract MockStateSender is IStateSender {
     /**
      * @notice Event emitted when when syncState is called
      * @dev Heimdall bridge listens to this event and sends the data to receiver contract on child chain
