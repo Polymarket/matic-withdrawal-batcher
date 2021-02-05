@@ -35,12 +35,15 @@ contract ChildBatcher is BaseChildTunnel {
      * @param message bytes message that was sent from Root Tunnel
      */
     function _processMessageFromRoot(bytes memory message) override internal {
-        bytes32[] memory deposits = abi.decode(message, (bytes32[]));
+        for (uint256 i = 32; i <= message.length; i = i + 32){
+            // Each 32 bytes of the message corresponds to an encoded deposit
+            bytes32 encodedDeposit;
+            assembly {
+                encodedDeposit := mload(add(message, i))
+            }
 
-        // TODO: Could we just transfer out the tokens instead?
-        // Add each deposit to the balance of its recipient
-        for (uint256 i; i < deposits.length; i++){
-            (address recipient, uint96 amount) = deposits[i].decodeDeposit();
+            // Decode and add to user's balance
+            (address recipient, uint96 amount) = encodedDeposit.decodeDeposit();
             balance[recipient] += amount;
         }
     }
