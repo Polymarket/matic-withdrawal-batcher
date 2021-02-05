@@ -5,10 +5,10 @@ pragma solidity 0.6.8;
 import "hardhat/console.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IRootChainManager } from "./interfaces/IRootChainManager.sol";
-import { BaseRootTunnel } from "./BaseRootTunnel.sol";
+import { BaseRootSendOnlyTunnel } from "./BaseRootSendOnlyTunnel.sol";
 import { DepositEncoder } from "../common/DepositEncoder.sol";
 
-contract RootBatcher is BaseRootTunnel {
+contract RootBatcher is BaseRootSendOnlyTunnel {
     using DepositEncoder for bytes32;
 
     event Deposit(address indexed depositor, address indexed recipient, uint96 amount);
@@ -77,16 +77,5 @@ contract RootBatcher is BaseRootTunnel {
         _sendMessageToChild(depositMessage);
 
         emit BridgedDeposits(msg.sender, depositMessage, totalDepositAmount);
-    }
-
-    /**
-     * @notice Process message received from Child Tunnel
-     * @dev function needs to be implemented to handle message as per requirement
-     * This is called by onStateReceive function.
-     * Since it is called via a system call, any event will not be emitted during its execution.
-     * @param message bytes message that was sent from Child Tunnel
-     */
-    function _processMessageFromChild(bytes memory message) override internal {
-        console.logBytes(message);
     }
 }
