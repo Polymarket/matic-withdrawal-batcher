@@ -1,7 +1,13 @@
 /* eslint-disable func-names */
 import { deployments, ethers, getNamedAccounts } from "hardhat";
 import { BigNumber } from "ethers";
-import { MockERC20Predicate, MockRootChainManager, MockStateSender, RootBatcher, TestErc20 } from "../../typechain";
+import {
+  MockERC20Predicate,
+  MockRootChainManager,
+  MockStateSender,
+  RootDepositBatcher,
+  TestErc20,
+} from "../../typechain";
 import { chai, encodeDeposit, encodeDepositMessage } from "../helpers";
 import { MAX_UINT96 } from "../helpers/constants";
 
@@ -15,13 +21,13 @@ const setup = deployments.createFixture(async () => {
   const stateSender = (await ethers.getContract("MockStateSender")) as MockStateSender;
 
   const namedAccounts = await getNamedAccounts();
-  await deployments.deploy("RootBatcher", {
+  await deployments.deploy("RootDepositBatcher", {
     from: namedAccounts.admin,
     args: [token.address, rootChainManager.address, erc20Predicate.address],
     log: true,
   });
 
-  const rootBatcher = (await ethers.getContract("RootBatcher")) as RootBatcher;
+  const rootBatcher = (await ethers.getContract("RootDepositBatcher")) as RootDepositBatcher;
   await rootBatcher.setStateSender(stateSender.address);
 
   await rootBatcher.setChildTunnel(stateSender.address);
@@ -36,8 +42,8 @@ const setup = deployments.createFixture(async () => {
 
 const deposits: [string, BigNumber][] = [["0xf35a15fa6dc1C11C8F242663fEa308Cd85688adA", BigNumber.from("100")]];
 
-describe("RootBatcher", function () {
-  let rootBatcher: RootBatcher;
+describe("RootDepositBatcher", function () {
+  let rootBatcher: RootDepositBatcher;
   let token: TestErc20;
   let erc20Predicate: MockERC20Predicate;
   let stateSender: MockStateSender;

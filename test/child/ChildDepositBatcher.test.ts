@@ -2,15 +2,15 @@
 import { deployments, ethers, getNamedAccounts } from "hardhat";
 import { BigNumber } from "ethers";
 import { keccak256 as solidityKeccak256 } from "@ethersproject/solidity";
-import { ChildBatcher, TestErc20 } from "../../typechain";
+import { ChildDepositBatcher, TestErc20 } from "../../typechain";
 import { chai, encodeDepositMessage } from "../helpers";
 
 const { expect } = chai;
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture(["TestErc20", "ChildBatcher"]);
+  await deployments.fixture(["TestErc20", "ChildDepositBatcher"]);
   const token = (await ethers.getContract("TestErc20")) as TestErc20;
-  const childBatcher = (await ethers.getContract("ChildBatcher")) as ChildBatcher;
+  const childBatcher = (await ethers.getContract("ChildDepositBatcher")) as ChildDepositBatcher;
 
   return {
     childBatcher,
@@ -18,8 +18,8 @@ const setup = deployments.createFixture(async () => {
   };
 });
 
-describe("ChildBatcher", function () {
-  let childBatcher: ChildBatcher;
+describe("ChildDepositBatcher", function () {
+  let childBatcher: ChildDepositBatcher;
   let token: TestErc20;
   let admin: string;
   let deposits: [string, BigNumber][];

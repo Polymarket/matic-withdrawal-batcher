@@ -2,13 +2,12 @@
 
 pragma solidity 0.6.8;
 
-import "hardhat/console.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IRootChainManager } from "./interfaces/IRootChainManager.sol";
 import { BaseRootSendOnlyTunnel } from "./BaseRootSendOnlyTunnel.sol";
 import { DepositEncoder } from "../common/DepositEncoder.sol";
 
-contract RootBatcher is BaseRootSendOnlyTunnel {
+contract RootDepositBatcher is BaseRootSendOnlyTunnel {
     using DepositEncoder for bytes32;
 
     event Deposit(address indexed depositor, address indexed recipient, uint96 amount);

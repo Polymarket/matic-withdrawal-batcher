@@ -2,12 +2,11 @@
 
 pragma solidity 0.6.8;
 
-import "hardhat/console.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { BaseChildTunnel } from "./BaseChildTunnel.sol";
 import { DepositEncoder } from "../common/DepositEncoder.sol";
 
-contract ChildBatcher is BaseChildTunnel {
+contract ChildDepositBatcher is BaseChildTunnel {
     using DepositEncoder for bytes32;
 
     event Claim(address indexed recipient, uint256 amount);

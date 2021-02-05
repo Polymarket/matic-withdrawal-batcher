@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { AddressZero } from "@ethersproject/constants";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
@@ -13,12 +14,12 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     throw Error("Bad network");
   }
 
-  await deployments.deploy("ChildBatcher", {
+  await deployments.deploy("RootDepositBatcher", {
     from: admin,
-    args: [depositToken],
+    args: [depositToken, AddressZero, AddressZero],
     log: true,
   });
 };
 
 export default func;
-func.tags = ["ChildBatcher"];
+func.tags = ["RootDepositBatcher"];
