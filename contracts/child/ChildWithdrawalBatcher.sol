@@ -63,7 +63,7 @@ contract ChildWithdrawalBatcher is BaseChildTunnel {
         withdrawalToken.withdraw(totalWithdrawalAmount);
 
         // Send a message to contract on Ethereum to allow recipients to withdraw
-        bytes memory withdrawalMessage = abi.encode(totalWithdrawalAmount);
+        bytes memory withdrawalMessage = abi.encodePacked(encodedWithdrawals);
         _sendMessageToRoot(withdrawalMessage);
 
         emit BridgedWithdrawals(msg.sender, withdrawalMessage, totalWithdrawalAmount);
