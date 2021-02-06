@@ -71,7 +71,7 @@ contract RootDepositBatcher is BaseRootSendOnlyTunnel {
         rootChainManager.depositFor(address(this), address(depositToken), abi.encode(totalDepositAmount));
 
         // Send a message to contract on Matic to allow recipients to withdraw
-        bytes memory depositMessage = abi.encode(encodedDeposits);
+        bytes memory depositMessage = abi.encodePacked(encodedDeposits);
         _sendMessageToChild(depositMessage);
 
         emit BridgedDeposits(msg.sender, depositMessage, totalDepositAmount);
