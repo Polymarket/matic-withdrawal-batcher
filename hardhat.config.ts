@@ -90,6 +90,7 @@ const config: HardhatUserConfig = {
   gasReporter: {
     currency: "USD",
     gasPrice: 100,
+    excludeContracts: ["Mock", "ERC20"],
   },
 };
 
