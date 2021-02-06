@@ -15,4 +15,13 @@ contract TestERC20 is ERC20 {
         _mint(recipient, amount);
         return true;
     }
+
+    /**
+     * @notice called when user wants to withdraw tokens back to root chain
+     * @dev Should burn user's tokens. This transaction will be verified when exiting on root chain
+     * @param amount amount of tokens to withdraw
+     */
+    function withdraw(uint256 amount) external {
+        _burn(msg.sender, amount);
+    }
 }
