@@ -4,7 +4,7 @@ pragma solidity 0.6.8;
 
 import { DepositEncoder } from "./DepositEncoder.sol";
 
-contract DepositEncoderMock {
+contract MockDepositEncoder {
     using DepositEncoder for bytes32;
 
     function encodeDeposit(address recipient, uint96 amount) public pure returns (bytes32) {

@@ -1,15 +1,15 @@
 /* eslint-disable func-names */
 import { deployments, ethers } from "hardhat";
 import { BigNumber } from "ethers";
-import { DepositEncoderMock } from "../../typechain";
+import { MockDepositEncoder } from "../../typechain";
 import { chai } from "../helpers";
 import { MAX_UINT96 } from "../helpers/constants";
 
 const { expect } = chai;
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture("DepositEncoderMock");
-  const depositEncoder = (await ethers.getContract("DepositEncoderMock")) as DepositEncoderMock;
+  await deployments.fixture("MockDepositEncoder");
+  const depositEncoder = (await ethers.getContract("MockDepositEncoder")) as MockDepositEncoder;
 
   return {
     depositEncoder,
@@ -28,7 +28,7 @@ const testCases: [[string, BigNumber], string][] = [
 ];
 
 describe("DepositEncoder", function () {
-  let depositEncoder: DepositEncoderMock;
+  let depositEncoder: MockDepositEncoder;
   before(async function () {
     const deployment = await setup();
     depositEncoder = deployment.depositEncoder;

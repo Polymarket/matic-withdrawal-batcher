@@ -6,11 +6,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const { admin } = await getNamedAccounts();
 
-  await deployments.deploy("DepositEncoderMock", {
+  await deployments.deploy("MockDepositEncoder", {
     from: admin,
     log: true,
   });
 };
 
 export default func;
-func.tags = ["DepositEncoderMock"];
+func.tags = ["MockDepositEncoder"];
