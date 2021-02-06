@@ -57,8 +57,7 @@ contract RootDepositBatcher is BaseRootSendOnlyTunnel {
         uint256 totalDepositAmount;
         // Calculate amount of funds to be bridged for deposits and message
         for (uint256 i; i < encodedDeposits.length; i++){
-            bytes32 encodedDeposit = encodedDeposits[i];
-            (address recipient, uint96 depositAmount) = encodedDeposit.decodeDeposit();
+            (address recipient, uint96 depositAmount) = encodedDeposits[i].decodeDeposit();
             totalDepositAmount += depositAmount;
 
             // Enforce that recipient has enough funds for this deposit
