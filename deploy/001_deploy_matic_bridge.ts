@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { solidityKeccak256 } from "ethers/lib/utils";
-import { MockERC20Predicate, MockRootChainManager, MockStateSender, TestErc20 } from "../typechain";
+import { MockERC20Predicate, MockRootChainManager, MockStateSender, TestERC20 } from "../typechain";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
@@ -24,7 +24,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   });
 
-  const token = (await ethers.getContract("TestErc20")) as TestErc20;
+  const token = (await ethers.getContract("TestERC20")) as TestERC20;
   const stateSender = (await ethers.getContract("MockStateSender")) as MockStateSender;
   const erc20Predicate = (await ethers.getContract("MockERC20Predicate")) as MockERC20Predicate;
   const rootChainManager = (await ethers.getContract("MockRootChainManager")) as MockRootChainManager;
@@ -43,4 +43,4 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
 export default func;
 func.tags = ["Matic"];
-func.dependencies = ["TestErc20"];
+func.dependencies = ["TestERC20"];

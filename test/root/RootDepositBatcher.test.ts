@@ -6,7 +6,7 @@ import {
   MockRootChainManager,
   MockStateSender,
   RootDepositBatcher,
-  TestErc20,
+  TestERC20,
 } from "../../typechain";
 import { chai, encodeDeposit, encodeDepositMessage } from "../helpers";
 import { MAX_UINT96 } from "../helpers/constants";
@@ -15,7 +15,7 @@ const { expect } = chai;
 
 const setup = deployments.createFixture(async () => {
   await deployments.fixture("Matic");
-  const token = (await ethers.getContract("TestErc20")) as TestErc20;
+  const token = (await ethers.getContract("TestERC20")) as TestERC20;
   const erc20Predicate = (await ethers.getContract("MockERC20Predicate")) as MockERC20Predicate;
   const rootChainManager = (await ethers.getContract("MockRootChainManager")) as MockRootChainManager;
   const stateSender = (await ethers.getContract("MockStateSender")) as MockStateSender;
@@ -44,7 +44,7 @@ const deposits: [string, BigNumber][] = [["0xf35a15fa6dc1C11C8F242663fEa308Cd856
 
 describe("RootDepositBatcher", function () {
   let rootBatcher: RootDepositBatcher;
-  let token: TestErc20;
+  let token: TestERC20;
   let erc20Predicate: MockERC20Predicate;
   let stateSender: MockStateSender;
   let admin: string;

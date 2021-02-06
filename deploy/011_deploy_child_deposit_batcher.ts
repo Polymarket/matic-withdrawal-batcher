@@ -7,7 +7,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { admin } = await getNamedAccounts();
   let depositToken: string;
   if (hre.network.name === "hardhat") {
-    const tokenDeployment = await deployments.get("TestErc20");
+    const tokenDeployment = await deployments.get("TestERC20");
     depositToken = tokenDeployment.address;
   } else {
     throw Error("Bad network");

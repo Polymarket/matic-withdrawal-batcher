@@ -6,11 +6,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const { admin } = await getNamedAccounts();
 
-  await deployments.deploy("TestErc20", {
+  await deployments.deploy("TestERC20", {
     from: admin,
     log: true,
   });
 };
 
 export default func;
-func.tags = ["TestErc20"];
+func.tags = ["TestERC20"];
