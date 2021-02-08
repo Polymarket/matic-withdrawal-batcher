@@ -53,10 +53,10 @@ contract ChildWithdrawalBatcher is BaseChildTunnel {
             (address recipient, uint96 withdrawalAmount) = encodedWithdrawals[i].decodeDeposit();
             totalWithdrawalAmount += withdrawalAmount;
 
-            // Enforce that recipient has enough funds for this withdrawal
-            uint256 recipientBalance = balance[recipient];
-            require(recipientBalance >= withdrawalAmount, "Recipient balance too low for withdrawal");
-            balance[recipient] = recipientBalance - withdrawalAmount;
+            // Enforce that full balance of recipient is used
+            // This prevents attacks by malicious bridgers fragmenting users' funds over many withdrawals
+            require(balance[recipient] == withdrawalAmount, "Must withdraw all of user's balance");
+            balance[recipient] = 0;
         }
 
         // Withdraw the amount of funds needed for newly processed withdrawals
