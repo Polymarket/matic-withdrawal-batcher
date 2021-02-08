@@ -20,10 +20,14 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
     }
 
     function claim() external {
-        uint256 amount = balance[msg.sender];
-        balance[msg.sender] = 0;
-        require(withdrawalToken.transfer(msg.sender, amount), "Token transfer failed");
-        emit Claim(msg.sender, amount);
+        claimFor(msg.sender);
+    }
+
+    function claimFor(address recipient) public {
+        uint256 amount = balance[recipient];
+        balance[recipient] = 0;
+        require(withdrawalToken.transfer(recipient, amount), "Token transfer failed");
+        emit Claim(recipient, amount);
     }
 
     /**
