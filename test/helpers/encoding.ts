@@ -6,3 +6,9 @@ export const encodeDeposit = (address: string, amount: BigNumber): string =>
 
 export const encodeDepositMessage = (deposits: [string, BigNumber][]): string =>
   hexConcat(deposits.map(([address, amount]) => encodeDeposit(address, amount)));
+
+export const decodeDeposit = (encodedDeposit: string): [string, BigNumber] => {
+  const recipient = encodedDeposit.slice(0, 42);
+  const amount = BigNumber.from(encodedDeposit.slice(43));
+  return [recipient, amount];
+};
