@@ -2,7 +2,13 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { solidityKeccak256 } from "ethers/lib/utils";
-import { MockERC20Predicate, MockRootChainManager, MockStateSender, TestERC20 } from "../typechain";
+import {
+  MockCheckpointManager,
+  MockERC20Predicate,
+  MockRootChainManager,
+  MockStateSender,
+  TestERC20,
+} from "../typechain";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
@@ -10,6 +16,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { admin } = await getNamedAccounts();
 
   await deployments.deploy("MockStateSender", {
+    from: admin,
+    log: true,
+  });
+
+  await deployments.deploy("MockCheckpointManager", {
     from: admin,
     log: true,
   });
@@ -26,6 +37,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const token = (await ethers.getContract("TestERC20")) as TestERC20;
   const stateSender = (await ethers.getContract("MockStateSender")) as MockStateSender;
+  const checkpointManager = (await ethers.getContract("MockCheckpointManager")) as MockCheckpointManager;
+
   const erc20Predicate = (await ethers.getContract("MockERC20Predicate")) as MockERC20Predicate;
   const rootChainManager = (await ethers.getContract("MockRootChainManager")) as MockRootChainManager;
 
@@ -33,6 +46,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const TOKEN_TYPE_ID = solidityKeccak256(["string"], ["ERC20"]);
   await erc20Predicate.initialize(admin);
   await rootChainManager.initialize(admin);
+  await rootChainManager.setCheckpointManager(checkpointManager.address);
 
   await erc20Predicate.grantRole(MANAGER_ROLE, rootChainManager.address);
   await rootChainManager.setStateSender(stateSender.address);
