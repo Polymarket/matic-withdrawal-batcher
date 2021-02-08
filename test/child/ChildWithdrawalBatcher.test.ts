@@ -52,7 +52,7 @@ describe("ChildWithdrawalBatcher", function () {
       it("transfers the expected amount to the contract", async function () {
         const userBalanceBefore = await token.balanceOf(admin);
         const contractBalanceBefore = await token.balanceOf(childBatcher.address);
-        await childBatcher.deposit(recipient, amount);
+        await childBatcher.depositFor(recipient, amount);
         const userBalanceAfter = await token.balanceOf(admin);
         const contractBalanceAfter = await token.balanceOf(childBatcher.address);
 
@@ -62,14 +62,14 @@ describe("ChildWithdrawalBatcher", function () {
 
       it("increases the recipients balance by the deposit amount", async function () {
         const recipientBalanceBefore = await childBatcher.balance(recipient);
-        await childBatcher.deposit(recipient, amount);
+        await childBatcher.depositFor(recipient, amount);
         const recipientBalanceAfter = await childBatcher.balance(recipient);
 
         expect(recipientBalanceAfter).to.eq(recipientBalanceBefore.add(amount));
       });
 
       it("emits a Deposit event", async function () {
-        expect(await childBatcher.deposit(recipient, amount))
+        expect(await childBatcher.depositFor(recipient, amount))
           .to.emit(childBatcher, "Deposit")
           .withArgs(admin, recipient, amount);
       });
@@ -78,7 +78,7 @@ describe("ChildWithdrawalBatcher", function () {
     it("does not allow deposits that needs more than 32 bytes to encode", async function () {
       const recipient = deposits[0][0];
       const badAmount = MAX_UINT96.add(1);
-      await expect(childBatcher.deposit(recipient, badAmount)).to.be.rejectedWith("value out-of-bounds");
+      await expect(childBatcher.depositFor(recipient, badAmount)).to.be.rejectedWith("value out-of-bounds");
     });
   });
 
@@ -124,7 +124,7 @@ describe("ChildWithdrawalBatcher", function () {
       for (let i = 0; i < deposits.length; i += 1) {
         const [currentRecipient, currentAmount] = deposits[i];
         // eslint-disable-next-line no-await-in-loop
-        await childBatcher.deposit(currentRecipient, currentAmount);
+        await childBatcher.depositFor(currentRecipient, currentAmount);
       }
     });
 

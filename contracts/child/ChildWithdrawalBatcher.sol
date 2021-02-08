@@ -9,7 +9,8 @@ import { DepositEncoder } from "../common/DepositEncoder.sol";
 contract ChildWithdrawalBatcher is BaseChildTunnel {
     using DepositEncoder for bytes32;
 
-    event Deposit(address indexed depositor, address indexed recipient, uint96 amount);
+    event Deposit(address indexed depositor, address indexed recipient, uint256 amount);
+    event Withdrawal(address indexed recipient, uint256 amount);
     event BridgedWithdrawals(address indexed bridger, bytes withdrawalMessage, uint256 amount);
 
     IChildERC20 public immutable withdrawalToken;
@@ -25,15 +26,28 @@ contract ChildWithdrawalBatcher is BaseChildTunnel {
     }
 
     /**
-     * Transfers user's funds to the contract to be included in a withdrawal, increasing their balance
+     * Transfers user's funds to the contract to be included in a withdrawal to another account, increasing its balance
      * @param recipient - address on root chain which will be able to claim funds
      * @param amount - amount of funds to be deposited for recipient
      */
-    function deposit(address recipient, uint96 amount) external {
+    function depositFor(address recipient, uint96 amount) public {
         require(withdrawalToken.transferFrom(msg.sender, address(this), amount), "Token transfer failed");
         
         balance[recipient] += amount;
         emit Deposit(msg.sender, recipient, amount);
+    }
+
+    /**
+     * Withdraws from user's internal balance back to their account on Matic
+     * @param amount - amount of funds to be withdrawn for recipient
+     */
+    function withdraw(uint256 amount) external {
+        uint256 userBalance = balance[msg.sender];
+        require(userBalance >= amount, "Insufficient balance for withdrawal");
+        balance[msg.sender] =  userBalance - amount;
+        
+        require(withdrawalToken.transfer(msg.sender, amount), "Token transfer failed");
+        emit Withdrawal(msg.sender, amount);
     }
 
     /**

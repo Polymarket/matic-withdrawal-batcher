@@ -3,6 +3,11 @@
 pragma solidity 0.6.8;
 
 interface IChildERC20 {
+    function transfer(
+        address to,
+        uint256 amount
+    ) external returns (bool);
+
     function transferFrom(
         address from,
         address to,
