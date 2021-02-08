@@ -976,6 +976,16 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
+"@tomfrench/matic-proofs@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@tomfrench/matic-proofs/-/matic-proofs-0.2.1.tgz#badf558a39a7bc590b42d42684e5417056645345"
+  integrity sha512-dKBV/a4JOWfa978PeEtnDnjFrkPlI2fG+MWdydu5+zk9wrslnaz824BJUiLsl3tlaPt1UJFRzhTsJ1SLYGor8w==
+  dependencies:
+    bluebird "^3.7.2"
+    ethereumjs-util "^7.0.5"
+    isomorphic-fetch "^3.0.0"
+    merkle-patricia-tree "^4.0.0"
+
 "@truffle/error@^0.0.11":
   version "0.0.11"
   resolved "https://registry.yarnpkg.com/@truffle/error/-/error-0.0.11.tgz#2789c0042d7e796dcbb840c7a9b5d2bcd8e0e2d8"
@@ -1004,6 +1014,11 @@
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-5.0.0.tgz#6c91766b76c19886cf2c4833ded09611e117f92c"
   integrity sha512-SnLnq6BCq2NBgm5xsQP8kRIawJ7gppLux8EOMb2ceoB5EuoW87AOyi6r1J5LTYe65/J59HjOVtaGCqsO+38Xrw==
+
+"@types/abstract-leveldown@*":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@types/abstract-leveldown/-/abstract-leveldown-5.0.1.tgz#3c7750d0186b954c7f2d2f6acc8c3c7ba0c3412e"
+  integrity sha512-wYxU3kp5zItbxKmeRYCEplS2MW7DzyBnxPGj+GJVHZEUZiK/nn5Ei1sUFgURDh+X051+zsGe28iud3oHjrYWQQ==
 
 "@types/bn.js@^4.11.3", "@types/bn.js@^4.11.4", "@types/bn.js@^4.11.5":
   version "4.11.6"
@@ -1062,6 +1077,14 @@
   version "0.0.29"
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
+
+"@types/levelup@^3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@types/levelup/-/levelup-3.1.1.tgz#f7cc08f248f14cb6c92914e91bceb8761020e8f0"
+  integrity sha512-LjvlfctJYj23Xuqq3jCT8ZPSUSSgDcRJg8+XFDBasoYzefFbB4cHzlDmBVjc2rBOYvklpYHJRayD0jBsbJLD9w==
+  dependencies:
+    "@types/abstract-leveldown" "*"
+    "@types/node" "*"
 
 "@types/lru-cache@^5.1.0":
   version "5.1.0"
@@ -1397,11 +1420,33 @@ abstract-leveldown@^5.0.0, abstract-leveldown@~5.0.0:
   dependencies:
     xtend "~4.0.0"
 
+abstract-leveldown@^6.2.1:
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/abstract-leveldown/-/abstract-leveldown-6.3.0.tgz#d25221d1e6612f820c35963ba4bd739928f6026a"
+  integrity sha512-TU5nlYgta8YrBMNpc9FwQzRbiXsj49gsALsXadbGHt9CROPzX5fB0rWDR5mtdpOOKa5XqRFpbj1QroPAoPzVjQ==
+  dependencies:
+    buffer "^5.5.0"
+    immediate "^3.2.3"
+    level-concat-iterator "~2.0.0"
+    level-supports "~1.0.0"
+    xtend "~4.0.0"
+
 abstract-leveldown@~2.6.0:
   version "2.6.3"
   resolved "https://registry.yarnpkg.com/abstract-leveldown/-/abstract-leveldown-2.6.3.tgz#1c5e8c6a5ef965ae8c35dfb3a8770c476b82c4b8"
   integrity sha512-2++wDf/DYqkPR3o5tbfdhF96EfMApo1GpPfzOsR/ZYXdkSmELlvOOEAl9iKkRsktMPHdGjO4rtkBpf2I7TiTeA==
   dependencies:
+    xtend "~4.0.0"
+
+abstract-leveldown@~6.2.1:
+  version "6.2.3"
+  resolved "https://registry.yarnpkg.com/abstract-leveldown/-/abstract-leveldown-6.2.3.tgz#036543d87e3710f2528e47040bc3261b77a9a8eb"
+  integrity sha512-BsLm5vFMRUrrLeCcRc+G0t2qOaTzpoJQLOubq2XM72eNpjF5UdU5o/5NvlNhx95XHcAvcl8OMXr4mlg/fRgUXQ==
+  dependencies:
+    buffer "^5.5.0"
+    immediate "^3.2.3"
+    level-concat-iterator "~2.0.0"
+    level-supports "~1.0.0"
     xtend "~4.0.0"
 
 accepts@~1.3.7:
@@ -2395,7 +2440,7 @@ blakejs@^1.1.0:
   resolved "https://registry.yarnpkg.com/blakejs/-/blakejs-1.1.0.tgz#69df92ef953aa88ca51a32df6ab1c54a155fc7a5"
   integrity sha1-ad+S75U6qIylGjLfarHFShVfx6U=
 
-bluebird@^3.5.0, bluebird@^3.5.2:
+bluebird@^3.5.0, bluebird@^3.5.2, bluebird@^3.7.2:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
@@ -3483,6 +3528,14 @@ deferred-leveldown@~4.0.0:
     abstract-leveldown "~5.0.0"
     inherits "^2.0.3"
 
+deferred-leveldown@~5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/deferred-leveldown/-/deferred-leveldown-5.3.0.tgz#27a997ad95408b61161aa69bd489b86c71b78058"
+  integrity sha512-a59VOT+oDy7vtAbLRCZwWgxu2BaCfd5Hk7wxJd48ei7I+nsg8Orlb9CLG0PMZienk9BSUKgeAqkO2+Lw+1+Ukw==
+  dependencies:
+    abstract-leveldown "~6.2.1"
+    inherits "^2.0.3"
+
 define-properties@^1.1.2, define-properties@^1.1.3:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/define-properties/-/define-properties-1.1.3.tgz#cf88da6cbee26fe6db7094f61d870cbd84cee9f1"
@@ -3742,6 +3795,16 @@ encoding-down@5.0.4, encoding-down@~5.0.0:
     level-codec "^9.0.0"
     level-errors "^2.0.0"
     xtend "^4.0.1"
+
+encoding-down@^6.3.0:
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/encoding-down/-/encoding-down-6.3.0.tgz#b1c4eb0e1728c146ecaef8e32963c549e76d082b"
+  integrity sha512-QKrV0iKR6MZVJV08QY0wp1e7vF6QbhnbQhb07bwpEyuz4uZiZgPlEGdkCROuFkUwdxlFaiPIhjyarH1ee/3vhw==
+  dependencies:
+    abstract-leveldown "^6.2.1"
+    inherits "^2.0.3"
+    level-codec "^9.0.0"
+    level-errors "^2.0.0"
 
 encoding@^0.1.11:
   version "0.1.13"
@@ -4593,7 +4656,7 @@ ethereumjs-util@^5.0.0, ethereumjs-util@^5.0.1, ethereumjs-util@^5.1.1, ethereum
     rlp "^2.0.0"
     safe-buffer "^5.1.1"
 
-ethereumjs-util@^7.0.2:
+ethereumjs-util@^7.0.2, ethereumjs-util@^7.0.5:
   version "7.0.8"
   resolved "https://registry.yarnpkg.com/ethereumjs-util/-/ethereumjs-util-7.0.8.tgz#5258762b7b17e3d828e41834948363ff0a703ffd"
   integrity sha512-JJt7tDpCAmDPw/sGoFYeq0guOVqT3pTE9xlEbBmc/nlCij3JRCoS2c96SQ6kXVHOT3xWUNLDm5QCJLQaUnVAtQ==
@@ -6494,6 +6557,14 @@ isobject@^3.0.0, isobject@^3.0.1:
   resolved "https://registry.yarnpkg.com/isobject/-/isobject-3.0.1.tgz#4e431e92b11a9731636aa1f9c8d1ccbcfdab78df"
   integrity sha1-TkMekrEalzFjaqH5yNHMvP2reN8=
 
+isomorphic-fetch@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/isomorphic-fetch/-/isomorphic-fetch-3.0.0.tgz#0267b005049046d2421207215d45d6a262b8b8b4"
+  integrity sha512-qvUtwJ3j6qwsF3jLxkZ72qCgjMysPzDfeV240JHiGZsANBYd+EEuu35v7dfrJ9Up0Ak07D7GGSkGhCHTqg/5wA==
+  dependencies:
+    node-fetch "^2.6.1"
+    whatwg-fetch "^3.4.1"
+
 isstream@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/isstream/-/isstream-0.1.2.tgz#47e63f7af55afa6f92e1500e690eb8b8529c099a"
@@ -6806,6 +6877,11 @@ level-codec@~7.0.0:
   resolved "https://registry.yarnpkg.com/level-codec/-/level-codec-7.0.1.tgz#341f22f907ce0f16763f24bddd681e395a0fb8a7"
   integrity sha512-Ua/R9B9r3RasXdRmOtd+t9TCOEIIlts+TN/7XTT2unhDaL6sJn83S3rUyljbr6lVtw49N3/yA0HHjpV6Kzb2aQ==
 
+level-concat-iterator@~2.0.0:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/level-concat-iterator/-/level-concat-iterator-2.0.1.tgz#1d1009cf108340252cb38c51f9727311193e6263"
+  integrity sha512-OTKKOqeav2QWcERMJR7IS9CUo1sHnke2C0gkSmcR7QuEtFNLLzHQAvnMw8ykvEcv0Qtkg0p7FOwP1v9e5Smdcw==
+
 level-errors@^1.0.3:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/level-errors/-/level-errors-1.1.2.tgz#4399c2f3d3ab87d0625f7e3676e2d807deff404d"
@@ -6855,6 +6931,15 @@ level-iterator-stream@~3.0.0:
     readable-stream "^2.3.6"
     xtend "^4.0.0"
 
+level-iterator-stream@~4.0.0:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/level-iterator-stream/-/level-iterator-stream-4.0.2.tgz#7ceba69b713b0d7e22fcc0d1f128ccdc8a24f79c"
+  integrity sha512-ZSthfEqzGSOMWoUGhTXdX9jv26d32XJuHz/5YnuHZzH6wldfWMOVwI9TBtKcya4BKTyTt3XVA0A3cF3q5CY30Q==
+  dependencies:
+    inherits "^2.0.4"
+    readable-stream "^3.4.0"
+    xtend "^4.0.2"
+
 level-mem@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/level-mem/-/level-mem-3.0.1.tgz#7ce8cf256eac40f716eb6489654726247f5a89e5"
@@ -6862,6 +6947,22 @@ level-mem@^3.0.1:
   dependencies:
     level-packager "~4.0.0"
     memdown "~3.0.0"
+
+level-mem@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/level-mem/-/level-mem-5.0.1.tgz#c345126b74f5b8aa376dc77d36813a177ef8251d"
+  integrity sha512-qd+qUJHXsGSFoHTziptAKXoLX87QjR7v2KMbqncDXPxQuCdsQlzmyX+gwrEHhlzn08vkf8TyipYyMmiC6Gobzg==
+  dependencies:
+    level-packager "^5.0.3"
+    memdown "^5.0.0"
+
+level-packager@^5.0.3:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/level-packager/-/level-packager-5.1.1.tgz#323ec842d6babe7336f70299c14df2e329c18939"
+  integrity sha512-HMwMaQPlTC1IlcwT3+swhqf/NUO+ZhXVz6TY1zZIIZlIR0YSn8GtAAWmIvKjNY16ZkEg/JcpAuQskxsXqC0yOQ==
+  dependencies:
+    encoding-down "^6.3.0"
+    levelup "^4.3.2"
 
 level-packager@~4.0.0:
   version "4.0.1"
@@ -6894,6 +6995,13 @@ level-sublevel@6.6.4:
     typewiselite "~1.0.0"
     xtend "~4.0.0"
 
+level-supports@~1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/level-supports/-/level-supports-1.0.1.tgz#2f530a596834c7301622521988e2c36bb77d122d"
+  integrity sha512-rXM7GYnW8gsl1vedTJIbzOrRv85c/2uCMpiiCzO2fndd06U/kUXEEU9evYn4zFggBOg36IsBW8LzqIpETwwQzg==
+  dependencies:
+    xtend "^4.0.2"
+
 level-ws@0.0.0:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/level-ws/-/level-ws-0.0.0.tgz#372e512177924a00424b0b43aef2bb42496d228b"
@@ -6909,6 +7017,15 @@ level-ws@^1.0.0:
   dependencies:
     inherits "^2.0.3"
     readable-stream "^2.2.8"
+    xtend "^4.0.1"
+
+level-ws@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/level-ws/-/level-ws-2.0.0.tgz#207a07bcd0164a0ec5d62c304b4615c54436d339"
+  integrity sha512-1iv7VXx0G9ec1isqQZ7y5LmoZo/ewAsyDHNA8EFDW5hqH2Kqovm33nSFkSdnLLAK+I5FlT+lo5Cw9itGe+CpQA==
+  dependencies:
+    inherits "^2.0.3"
+    readable-stream "^3.1.0"
     xtend "^4.0.1"
 
 levelup@3.1.1, levelup@^3.0.0:
@@ -6932,6 +7049,17 @@ levelup@^1.2.1:
     level-iterator-stream "~1.3.0"
     prr "~1.0.1"
     semver "~5.4.1"
+    xtend "~4.0.0"
+
+levelup@^4.3.2:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/levelup/-/levelup-4.4.0.tgz#f89da3a228c38deb49c48f88a70fb71f01cafed6"
+  integrity sha512-94++VFO3qN95cM/d6eBXvd894oJE0w3cInq9USsyQzzoJxmiYzPAocNcuGCPGGjoXqDVJcr3C1jzt1TSjyaiLQ==
+  dependencies:
+    deferred-leveldown "~5.3.0"
+    level-errors "~2.0.0"
+    level-iterator-stream "~4.0.0"
+    level-supports "~1.0.0"
     xtend "~4.0.0"
 
 levn@^0.3.0, levn@~0.3.0:
@@ -7207,6 +7335,18 @@ memdown@^1.0.0:
     ltgt "~2.2.0"
     safe-buffer "~5.1.1"
 
+memdown@^5.0.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/memdown/-/memdown-5.1.0.tgz#608e91a9f10f37f5b5fe767667a8674129a833cb"
+  integrity sha512-B3J+UizMRAlEArDjWHTMmadet+UKwHd3UjMgGBkZcKAxAYVPS9o0Yeiha4qvz7iGiL2Sb3igUft6p7nbFWctpw==
+  dependencies:
+    abstract-leveldown "~6.2.1"
+    functional-red-black-tree "~1.0.1"
+    immediate "~3.2.3"
+    inherits "~2.0.1"
+    ltgt "~2.2.0"
+    safe-buffer "~5.2.0"
+
 memdown@~3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/memdown/-/memdown-3.0.0.tgz#93aca055d743b20efc37492e9e399784f2958309"
@@ -7282,6 +7422,19 @@ merkle-patricia-tree@^2.1.2, merkle-patricia-tree@^2.3.2:
     readable-stream "^2.0.0"
     rlp "^2.0.0"
     semaphore ">=1.0.1"
+
+merkle-patricia-tree@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/merkle-patricia-tree/-/merkle-patricia-tree-4.0.0.tgz#b95500a2a188a813eae18b175b34d9f439b92a62"
+  integrity sha512-OnI0iUvc5G66ZJgSB7PnuU6Pnk9QADMcBgua7YhNm8gbQJq5Hbiv9U9hQRe3mEM1KEfbqrdTC+x33bTewF+oCA==
+  dependencies:
+    "@types/levelup" "^3.1.1"
+    ethereumjs-util "^7.0.2"
+    level-mem "^5.0.1"
+    level-ws "^2.0.0"
+    readable-stream "^3.6.0"
+    rlp "^2.2.4"
+    semaphore-async-await "^1.5.1"
 
 methods@~1.1.2:
   version "1.1.2"
@@ -7662,7 +7815,7 @@ node-fetch@2.1.2:
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.1.2.tgz#ab884e8e7e57e38a944753cec706f788d1768bb5"
   integrity sha1-q4hOjn5X44qUR1POxwb3iNF2i7U=
 
-node-fetch@^2.6.0:
+node-fetch@^2.6.0, node-fetch@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
   integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
@@ -8602,7 +8755,7 @@ read-pkg@^5.2.0:
     parse-json "^5.0.0"
     type-fest "^0.6.0"
 
-"readable-stream@2 || 3", readable-stream@^3.0.6, readable-stream@^3.6.0:
+"readable-stream@2 || 3", readable-stream@^3.0.6, readable-stream@^3.1.0, readable-stream@^3.4.0, readable-stream@^3.6.0:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.6.0.tgz#337bbda3adc0706bd3e024426a286d4b4b2c9198"
   integrity sha512-BViHy7LKeTz4oNnkcLJ+lVSL6vpiFeX6/d3oSH8zCW7UxP2onchk+vTGB143xuFjHS3deTgkKoXXymXqymiIdA==
@@ -9087,6 +9240,11 @@ seedrandom@3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-3.0.1.tgz#eb3dde015bcf55df05a233514e5df44ef9dce083"
   integrity sha512-1/02Y/rUeU1CJBAGLebiC5Lbo5FnB22gQbIFFYTLkwvp1xdABZJH1sn4ZT1MzXmPpzv+Rf/Lu2NcsLJiK4rcDg==
+
+semaphore-async-await@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/semaphore-async-await/-/semaphore-async-await-1.5.1.tgz#857bef5e3644601ca4b9570b87e9df5ca12974fa"
+  integrity sha1-hXvvXjZEYBykuVcLh+nfXKEpdPo=
 
 semaphore@>=1.0.1, semaphore@^1.0.3, semaphore@^1.1.0:
   version "1.1.0"
@@ -10993,6 +11151,11 @@ whatwg-fetch@2.0.4:
   resolved "https://registry.yarnpkg.com/whatwg-fetch/-/whatwg-fetch-2.0.4.tgz#dde6a5df315f9d39991aa17621853d720b85566f"
   integrity sha512-dcQ1GWpOD/eEQ97k66aiEVpNnapVj90/+R+SXTPYGHpYBBypfKJEQjLrvMZ7YXbKm21gXd4NcuxUTjiv1YtLng==
 
+whatwg-fetch@^3.4.1:
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/whatwg-fetch/-/whatwg-fetch-3.5.0.tgz#605a2cd0a7146e5db141e29d1c62ab84c0c4c868"
+  integrity sha512-jXkLtsR42xhXg7akoDKvKWE40eJeI+2KZqcp2h3NsOrRnDvtWX36KcKl30dy+hxECivdk2BVUHVNrPtoMBUx6A==
+
 which-module@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/which-module/-/which-module-1.0.0.tgz#bba63ca861948994ff307736089e3b96026c2a4f"
@@ -11155,7 +11318,7 @@ xmlhttprequest@1.8.0:
   resolved "https://registry.yarnpkg.com/xmlhttprequest/-/xmlhttprequest-1.8.0.tgz#67fe075c5c24fef39f9d65f5f7b7fe75171968fc"
   integrity sha1-Z/4HXFwk/vOfnWX197f+dRcZaPw=
 
-xtend@^4.0.0, xtend@^4.0.1, xtend@~4.0.0, xtend@~4.0.1:
+xtend@^4.0.0, xtend@^4.0.1, xtend@^4.0.2, xtend@~4.0.0, xtend@~4.0.1:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz#bb72779f5fa465186b1f438f674fa347fdb5db54"
   integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==

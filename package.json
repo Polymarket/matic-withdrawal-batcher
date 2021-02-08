@@ -19,6 +19,7 @@
     "@ethersproject/abstract-signer": "^5.0.6",
     "@ethersproject/bignumber": "^5.0.8",
     "@openzeppelin/contracts": "^3.4.0",
+    "@tomfrench/matic-proofs": "^0.2.1",
     "@typechain/ethers-v5": "^5.0.0",
     "@types/chai": "^4.2.13",
     "@types/chai-as-promised": "^7.1.3",
