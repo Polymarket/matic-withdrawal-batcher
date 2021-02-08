@@ -15,7 +15,7 @@ const setup = deployments.createFixture(async () => {
   const namedAccounts = await getNamedAccounts();
   await deployments.deploy("ChildWithdrawalBatcher", {
     from: namedAccounts.admin,
-    args: [token.address],
+    args: [token.address, 100, 100],
     log: true,
   });
 
