@@ -23,10 +23,18 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
         withdrawalToken = _withdrawalToken;
     }
 
+    /**
+     * @notice Claim caller's balance, sending the tokens to their address
+     */
     function claim() external {
         claimFor(msg.sender);
     }
 
+
+    /**
+     * @notice Claim a recipient's balance for them, sending the tokens to their address
+     * @param recipient - the address of the recipient for which to claim
+     */
     function claimFor(address recipient) public {
         uint256 amount = balance[recipient];
         balance[recipient] = 0;
@@ -46,11 +54,8 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
     }
 
     /**
-     * @notice Process message received from Root Tunnel
-     * @dev function needs to be implemented to handle message as per requirement
-     * This is called by onStateReceive function.
-     * Since it is called via a system call, any event will not be emitted during its execution.
-     * @param message bytes message that was sent from Root Tunnel
+     * @notice Distribute a batch of withdrawals to its recipients
+     * @param message bytes object of packed encoded deposits
      */
     function distributeWithdrawals(bytes memory message) private {
         for (uint256 i = 32; i <= message.length; i = i + 32){
