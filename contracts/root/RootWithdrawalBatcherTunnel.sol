@@ -20,40 +20,18 @@ abstract contract RootWithdrawalBatcherTunnel is AccessControlMixin {
     bytes32 public constant SEND_MESSAGE_EVENT_SIG = 0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036;
 
     // root chain manager
-    ICheckpointManager public checkpointManager;
+    ICheckpointManager public immutable checkpointManager;
     // child tunnel contract which receives and sends messages 
-    address public childTunnel;
+    address public immutable childTunnel;
     // storage to avoid duplicate exits
     mapping(bytes32 => bool) public processedExits;
 
-    constructor() internal {
-      _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-      _setupContractId("RootTunnel");
-    }
-
-    /**
-     * @notice Set the checkpoint manager, callable only by admins
-     * @dev This should be the plasma contract responsible for keeping track of checkpoints
-     * @param newCheckpointManager address of checkpoint manager contract
-     */
-    function setCheckpointManager(address newCheckpointManager)
-        external
-        only(DEFAULT_ADMIN_ROLE)
-    {
-        checkpointManager = ICheckpointManager(newCheckpointManager);
-    }
-
-    /**
-     * @notice Set the child chain tunnel, callable only by admins
-     * @dev This should be the contract responsible to receive data bytes on child chain
-     * @param newChildTunnel address of child tunnel contract
-     */
-    function setChildTunnel(address newChildTunnel)
-        external
-        only(DEFAULT_ADMIN_ROLE)
-    {
-        require(newChildTunnel != address(0x0), "RootTunnel: INVALID_CHILD_TUNNEL_ADDRESS");
-        childTunnel = newChildTunnel;
+    constructor(address _checkpointManager, address _childTunnel) internal {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        
+        checkpointManager = ICheckpointManager(_checkpointManager);
+        require(_childTunnel != address(0x0), "RootTunnel: INVALID_CHILD_TUNNEL_ADDRESS");
+        childTunnel = _childTunnel;
     }
 
     function _validateAndExtractMessage(bytes memory inputData) internal returns (bytes memory) {

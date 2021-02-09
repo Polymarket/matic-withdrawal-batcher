@@ -15,7 +15,7 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
 
     mapping(address=>uint256) public balance;
 
-    constructor(IERC20 _withdrawalToken) public {
+    constructor(IERC20 _withdrawalToken, address _checkpointManager, address _childTunnel) public RootWithdrawalBatcherTunnel(_checkpointManager, _childTunnel) {
         withdrawalToken = _withdrawalToken;
     }
 

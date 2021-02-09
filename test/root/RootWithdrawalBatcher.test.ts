@@ -13,27 +13,27 @@ const { expect } = chai;
 const SEND_MESSAGE_EVENT_SIG = "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036";
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture(["Matic", "ChildWithdrawalBatcher", "RootWithdrawalBatcher"]);
+  await deployments.fixture(["Matic"]);
   const checkpointManager = (await ethers.getContract("MockCheckpointManager")) as MockCheckpointManager;
   const token = (await ethers.getContract("TestERC20")) as TestERC20;
 
   const namedAccounts = await getNamedAccounts();
+
   await deployments.deploy("ChildWithdrawalBatcher", {
     from: namedAccounts.admin,
     args: [token.address, 0, 100],
     log: true,
   });
 
+  const childBatcher = (await ethers.getContract("ChildWithdrawalBatcher")) as ChildWithdrawalBatcher;
+
   await deployments.deploy("RootWithdrawalBatcher", {
     from: namedAccounts.admin,
-    args: [token.address],
+    args: [token.address, checkpointManager.address, childBatcher.address],
     log: true,
   });
 
-  const childBatcher = (await ethers.getContract("ChildWithdrawalBatcher")) as ChildWithdrawalBatcher;
   const rootBatcher = (await ethers.getContract("RootWithdrawalBatcher")) as RootWithdrawalBatcher;
-  await rootBatcher.setChildTunnel(childBatcher.address);
-  await rootBatcher.setCheckpointManager((await deployments.get("MockCheckpointManager")).address);
 
   return {
     checkpointManager,
