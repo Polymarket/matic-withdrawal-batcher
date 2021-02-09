@@ -30,8 +30,7 @@ abstract contract RootWithdrawalBatcherTunnel is AccessControlMixin {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         
         checkpointManager = ICheckpointManager(_checkpointManager);
-        require(_childTunnel != address(0x0), "RootTunnel: INVALID_CHILD_TUNNEL_ADDRESS");
-        childTunnel = _childTunnel;
+        childTunnel = _childTunnel != address(0x0) ? _childTunnel : address(this);
     }
 
     function _validateAndExtractMessage(bytes memory inputData) internal returns (bytes memory) {

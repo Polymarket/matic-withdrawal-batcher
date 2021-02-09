@@ -27,13 +27,13 @@ const setup = deployments.createFixture(async () => {
 
   const childBatcher = (await ethers.getContract("ChildWithdrawalBatcher")) as ChildWithdrawalBatcher;
 
-  await deployments.deploy("TestRootWithdrawalBatcher", {
+  await deployments.deploy("RootWithdrawalBatcher", {
     from: namedAccounts.admin,
     args: [token.address, checkpointManager.address, childBatcher.address],
     log: true,
   });
 
-  const rootBatcher = (await ethers.getContract("TestRootWithdrawalBatcher")) as RootWithdrawalBatcher;
+  const rootBatcher = (await ethers.getContract("RootWithdrawalBatcher")) as RootWithdrawalBatcher;
 
   return {
     checkpointManager,

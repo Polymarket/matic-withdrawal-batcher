@@ -16,10 +16,13 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
     mapping(address=>uint256) public balance;
 
     /**
+     * @dev constructor argument _childTunnel is needed for testing. In a production deploy this should be set to zero
+     *      RootWithdrawalBatcherTunnel will then only accept messages from the a contract on the child chain at the same address as itself
      * @param _withdrawalToken - ERC20 token which this contract distributes
      * @param _checkpointManager - ERC20 token which this contract distributes
+     * @param _childTunnel - address of contract which this contract accepts messages from. Set to 0 in a production deploy.
      */
-    constructor(IERC20 _withdrawalToken, address _checkpointManager) public RootWithdrawalBatcherTunnel(_checkpointManager, address(this)) {
+    constructor(IERC20 _withdrawalToken, address _checkpointManager, address _childTunnel) public RootWithdrawalBatcherTunnel(_checkpointManager, _childTunnel) {
         withdrawalToken = _withdrawalToken;
     }
 
