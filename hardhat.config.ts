@@ -4,6 +4,8 @@ import { ChainId } from "./config/constants";
 import { mnemonic, infuraApiKey, maticVigilApiKey } from "./config/env";
 import "./tasks/accounts";
 import "./tasks/clean";
+import "./tasks/deploy-child-batcher";
+import "./tasks/deploy-root-batcher";
 
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
