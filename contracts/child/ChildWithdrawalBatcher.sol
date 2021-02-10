@@ -34,6 +34,14 @@ contract ChildWithdrawalBatcher is BaseChildTunnel {
     }
 
     /**
+     * Transfers user's funds to the contract to be included in a withdrawal, increasing their balance
+     * @param amount - amount of funds to be deposited for recipient
+     */
+    function deposit(uint96 amount) public {
+        depositFor(msg.sender, amount);
+    }
+
+    /**
      * Transfers user's funds to the contract to be included in a withdrawal to another account, increasing its balance
      * @param recipient - address on root chain which will be able to claim funds
      * @param amount - amount of funds to be deposited for recipient

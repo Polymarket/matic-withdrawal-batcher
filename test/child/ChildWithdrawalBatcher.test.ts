@@ -43,7 +43,7 @@ describe("ChildWithdrawalBatcher", function () {
     await token.approve(childBatcher.address, "1000000000000");
   });
 
-  describe("deposit", function () {
+  describe("depositFor", function () {
     const deposits: [string, string][] = [
       ["0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8", "10"],
       ["0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8", "300"],
