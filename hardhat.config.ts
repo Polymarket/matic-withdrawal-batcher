@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import { NetworkUserConfig } from "hardhat/types";
+import { ChainId } from "./config/constants";
 import { mnemonic, infuraApiKey, maticVigilApiKey } from "./config/env";
 import "./tasks/accounts";
 import "./tasks/clean";
@@ -9,18 +10,6 @@ import "hardhat-deploy-ethers";
 import "hardhat-gas-reporter";
 import "hardhat-typechain";
 import "solidity-coverage";
-
-enum ChainId {
-  ganache = 1337,
-  goerli = 5,
-  hardhat = 31337,
-  kovan = 42,
-  mainnet = 1,
-  matic = 137,
-  mumbai = 80001,
-  rinkeby = 4,
-  ropsten = 3,
-}
 
 function createTestnetConfig(network: keyof typeof ChainId): NetworkUserConfig {
   const url = `https://${network}.infura.io/v3/${infuraApiKey}`;
