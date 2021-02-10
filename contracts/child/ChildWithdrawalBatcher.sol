@@ -15,7 +15,7 @@ contract ChildWithdrawalBatcher is BaseChildTunnel {
 
     IChildERC20 public immutable withdrawalToken;
 
-    mapping(address => uint256) public balance;
+    mapping(address => uint256) public balanceOf;
 
     // Safety parameters to prevent malicious bridging
     uint256 public minWithdrawalAmount;
@@ -49,7 +49,7 @@ contract ChildWithdrawalBatcher is BaseChildTunnel {
     function depositFor(address recipient, uint96 amount) public {
         require(withdrawalToken.transferFrom(msg.sender, address(this), amount), "Token transfer failed");
         
-        balance[recipient] += amount;
+        balanceOf[recipient] += amount;
         emit Deposit(msg.sender, recipient, amount);
     }
 
@@ -58,9 +58,9 @@ contract ChildWithdrawalBatcher is BaseChildTunnel {
      * @param amount - amount of funds to be withdrawn for recipient
      */
     function withdraw(uint256 amount) external {
-        uint256 userBalance = balance[msg.sender];
+        uint256 userBalance = balanceOf[msg.sender];
         require(userBalance >= amount, "Insufficient balance for withdrawal");
-        balance[msg.sender] =  userBalance - amount;
+        balanceOf[msg.sender] =  userBalance - amount;
         
         require(withdrawalToken.transfer(msg.sender, amount), "Token transfer failed");
         emit Withdrawal(msg.sender, amount);
@@ -88,8 +88,8 @@ contract ChildWithdrawalBatcher is BaseChildTunnel {
 
             // Enforce that full balance of recipient is used
             // This prevents attacks by malicious bridgers fragmenting users' funds over many withdrawals
-            require(balance[recipient] == withdrawalAmount, "Must withdraw all of user's balance");
-            balance[recipient] = 0;
+            require(balanceOf[recipient] == withdrawalAmount, "Must withdraw all of user's balance");
+            balanceOf[recipient] = 0;
         }
 
         // Prevents gas costs of claiming withdrawals outweighing withdrawal value

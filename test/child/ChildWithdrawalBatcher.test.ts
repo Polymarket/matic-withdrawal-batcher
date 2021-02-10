@@ -61,9 +61,9 @@ describe("ChildWithdrawalBatcher", function () {
       });
 
       it("increases the recipients balance by the deposit amount", async function () {
-        const recipientBalanceBefore = await childBatcher.balance(recipient);
+        const recipientBalanceBefore = await childBatcher.balanceOf(recipient);
         await childBatcher.depositFor(recipient, amount);
-        const recipientBalanceAfter = await childBatcher.balance(recipient);
+        const recipientBalanceAfter = await childBatcher.balanceOf(recipient);
 
         expect(recipientBalanceAfter).to.eq(recipientBalanceBefore.add(amount));
       });
@@ -152,13 +152,13 @@ describe("ChildWithdrawalBatcher", function () {
       // Should be nonzero before
       await Promise.all(
         Object.entries(expectedBalances).map(async ([recipient, balance]) =>
-          expect(await childBatcher.balance(recipient)).to.eq(balance),
+          expect(await childBatcher.balanceOf(recipient)).to.eq(balance),
         ),
       );
       await childBatcher.bridgeWithdrawals(encodedDeposits);
       // Should be zero after
       await Promise.all(
-        Object.keys(expectedBalances).map(async recipient => expect(await childBatcher.balance(recipient)).to.eq(0)),
+        Object.keys(expectedBalances).map(async recipient => expect(await childBatcher.balanceOf(recipient)).to.eq(0)),
       );
     });
   });

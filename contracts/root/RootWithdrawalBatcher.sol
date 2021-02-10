@@ -13,7 +13,7 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
 
     IERC20 public immutable withdrawalToken;
 
-    mapping(address=>uint256) public balance;
+    mapping(address=>uint256) public balanceOf;
 
     /**
      * @dev constructor argument _childTunnel is needed for testing. In a production deploy this should be set to zero
@@ -39,8 +39,8 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
      * @param recipient - the address of the recipient for which to claim
      */
     function claimFor(address recipient) public {
-        uint256 amount = balance[recipient];
-        balance[recipient] = 0;
+        uint256 amount = balanceOf[recipient];
+        balanceOf[recipient] = 0;
         require(withdrawalToken.transfer(recipient, amount), "Token transfer failed");
         emit Claim(recipient, amount);
     }
@@ -70,7 +70,7 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
 
             // Decode and add to user's balance
             (address recipient, uint96 amount) = encodedWithdrawal.decodeDeposit();
-            balance[recipient] += amount;
+            balanceOf[recipient] += amount;
         }
     }
 }

@@ -168,7 +168,7 @@ describe("RootWithdrawalBatcher", function () {
 
       await Promise.all(
         Object.entries(expectedBalances).map(async ([recipient, amount]) => {
-          expect(await rootBatcher.balance(recipient)).to.be.eq(amount);
+          expect(await rootBatcher.balanceOf(recipient)).to.be.eq(amount);
         }),
       );
     });
@@ -199,9 +199,9 @@ describe("RootWithdrawalBatcher", function () {
     });
 
     it("it sets the recipient's internal balance to zero", async function () {
-      expect(await rootBatcher.balance(admin)).to.be.gt(0, "zero initial balance when testing claiming deposits");
+      expect(await rootBatcher.balanceOf(admin)).to.be.gt(0, "zero initial balance when testing claiming deposits");
       await rootBatcher.claim();
-      expect(await rootBatcher.balance(admin)).to.be.eq(0);
+      expect(await rootBatcher.balanceOf(admin)).to.be.eq(0);
     });
   });
 
@@ -229,12 +229,12 @@ describe("RootWithdrawalBatcher", function () {
       });
 
       it("it sets the recipient's internal balance to zero", async function () {
-        expect(await rootBatcher.balance(recipient)).to.be.eq(
+        expect(await rootBatcher.balanceOf(recipient)).to.be.eq(
           amount,
           "zero initial balance when testing claiming deposits",
         );
         await rootBatcher.claimFor(recipient);
-        expect(await rootBatcher.balance(recipient)).to.be.eq(0);
+        expect(await rootBatcher.balanceOf(recipient)).to.be.eq(0);
       });
     });
   });
