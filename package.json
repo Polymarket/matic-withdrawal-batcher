@@ -1,15 +1,11 @@
 {
-  "name": "@tomafrench/solidity-template",
-  "description": "Setup for writing Solidity smart contracts",
+  "name": "@polymarket/matic-withdrawal-batcher",
+  "description": "Contracts for non-custodial batching of withdrawals from Matic Network",
   "version": "1.0.0",
   "contributors": [
     {
       "name": "Tom French",
       "url": "https://github.com/TomAFrench"
-    },
-    {
-      "name": "Paul Razvan Berg",
-      "url": "https://paulrberg.com"
     }
   ],
   "devDependencies": {
@@ -67,7 +63,7 @@
     "smart-contracts",
     "solidity"
   ],
-  "license": "WTFPL",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
