@@ -2,11 +2,12 @@
 
 pragma solidity 0.6.8;
 
+import { AccessControlMixin } from "../common/Matic/AccessControlMixin.sol";
 import { IChildERC20 } from "./interfaces/IChildERC20.sol";
-import { BaseChildTunnel } from "./BaseChildTunnel.sol";
+import { ChildSendOnlyTunnel } from "./ChildSendOnlyTunnel.sol";
 import { DepositEncoder } from "../common/DepositEncoder.sol";
 
-contract ChildWithdrawalBatcher is BaseChildTunnel {
+contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
     using DepositEncoder for bytes32;
 
     event Deposit(address indexed depositor, address indexed recipient, uint256 amount);
@@ -28,6 +29,8 @@ contract ChildWithdrawalBatcher is BaseChildTunnel {
      * @param _maxWithdrawalRecipients - The maximum number of recipients which can included in a single withdrawal
      */
     constructor(IChildERC20 _withdrawalToken, uint256 _minWithdrawalAmount, uint256 _maxWithdrawalRecipients) public {
+        _setupContractId("ChildWithdrawalBatcher");
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         withdrawalToken = _withdrawalToken;
         minWithdrawalAmount = _minWithdrawalAmount;
         maxWithdrawalRecipients = _maxWithdrawalRecipients;
@@ -112,9 +115,4 @@ contract ChildWithdrawalBatcher is BaseChildTunnel {
     function setMaxWithdrawalRecipients(uint256 _maxWithdrawalRecipients) external only(DEFAULT_ADMIN_ROLE) {
         maxWithdrawalRecipients = _maxWithdrawalRecipients;
     }
-
-    /**
-     * Function is unneeded as we receive no messages from root chain
-     */
-    function _processMessageFromRoot(bytes memory message) internal override {}
 }
