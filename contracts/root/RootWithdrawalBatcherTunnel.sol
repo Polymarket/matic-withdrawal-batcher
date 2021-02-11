@@ -2,7 +2,6 @@ pragma solidity ^0.6.8;
 
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
 
-import { AccessControlMixin } from "../common/Matic/AccessControlMixin.sol";
 import { RLPReader } from "./lib/RLPReader.sol";
 import { MerklePatriciaProof } from "./lib/MerklePatriciaProof.sol";
 import { ICheckpointManager } from "./interfaces/ICheckpointManager.sol";
@@ -10,7 +9,7 @@ import { RLPReader } from "./lib/RLPReader.sol";
 import { MerklePatriciaProof } from "./lib/MerklePatriciaProof.sol";
 import { Merkle } from "./lib/Merkle.sol";
 
-abstract contract RootWithdrawalBatcherTunnel is AccessControlMixin {
+abstract contract RootWithdrawalBatcherTunnel {
     using RLPReader for bytes;
     using RLPReader for RLPReader.RLPItem;
     using Merkle for bytes32;
@@ -26,9 +25,7 @@ abstract contract RootWithdrawalBatcherTunnel is AccessControlMixin {
     // storage to avoid duplicate exits
     mapping(bytes32 => bool) public processedExits;
 
-    constructor(address _checkpointManager, address _childTunnel) internal {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        
+    constructor(address _checkpointManager, address _childTunnel) internal {      
         checkpointManager = ICheckpointManager(_checkpointManager);
         childTunnel = _childTunnel != address(0x0) ? _childTunnel : address(this);
     }
