@@ -2,15 +2,13 @@
 import { deployments, ethers, getNamedAccounts } from "hardhat";
 import { BigNumber } from "ethers";
 import { Zero } from "@ethersproject/constants";
-import { buildReceiptProof, encodePayload } from "@tomfrench/matic-proofs";
+import { buildReceiptProof, encodePayload, EventSignature } from "@tomfrench/matic-proofs";
 import { solidityKeccak256 } from "ethers/lib/utils";
 import { ChildWithdrawalBatcher, MockCheckpointManager, RootWithdrawalBatcher, TestERC20 } from "../../typechain";
 import { chai, encodeDeposit } from "../helpers";
 import { MAX_UINT96 } from "../helpers/constants";
 
 const { expect } = chai;
-
-const SEND_MESSAGE_EVENT_SIG = "0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036";
 
 const setup = deployments.createFixture(async () => {
   await deployments.fixture(["Matic"]);
@@ -126,7 +124,7 @@ const depositAndBridgeFunds = async (
 
   // Build a proof of log inclusion for the BridgedWithdrawals log
   const receiptProof = await buildReceiptProof(ethers.provider, bridgeTx.hash);
-  const logIndex = bridgeReceipt.logs.findIndex(log => log.topics[0] === SEND_MESSAGE_EVENT_SIG);
+  const logIndex = bridgeReceipt.logs.findIndex(log => log.topics[0] === EventSignature.SendMessage);
 
   return encodePayload({
     headerBlockNumber: checkpointId,
