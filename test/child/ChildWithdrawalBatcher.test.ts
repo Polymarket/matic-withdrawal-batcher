@@ -3,7 +3,7 @@ import { deployments, ethers, getNamedAccounts } from "hardhat";
 import { BigNumber } from "ethers";
 import { Zero } from "@ethersproject/constants";
 import { ChildWithdrawalBatcher, TestERC20 } from "../../typechain";
-import { chai, encodeDeposit, encodeDepositMessage } from "../helpers";
+import { chai, deploy, encodeDeposit, encodeDepositMessage } from "../helpers";
 import { MAX_UINT96 } from "../helpers/constants";
 
 const { expect } = chai;
@@ -12,14 +12,9 @@ const setup = deployments.createFixture(async () => {
   await deployments.fixture("Matic");
   const token = (await ethers.getContract("TestERC20")) as TestERC20;
 
-  const namedAccounts = await getNamedAccounts();
-  await deployments.deploy("ChildWithdrawalBatcher", {
-    from: namedAccounts.admin,
+  const childBatcher = (await deploy("ChildWithdrawalBatcher", {
     args: [token.address, 100, 100],
-    log: true,
-  });
-
-  const childBatcher = (await ethers.getContract("ChildWithdrawalBatcher")) as ChildWithdrawalBatcher;
+  })) as ChildWithdrawalBatcher;
 
   return {
     childBatcher,

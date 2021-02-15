@@ -1,7 +1,7 @@
 /* eslint-disable func-names */
 import { deployments, ethers, getNamedAccounts } from "hardhat";
 import { ChildWithdrawalBatcher, MockCheckpointManager, RootWithdrawalBatcher, TestERC20 } from "../../../typechain";
-import { chai } from "../../helpers";
+import { chai, deploy } from "../../helpers";
 import { MAX_UINT96 } from "../../helpers/constants";
 import { buildBridgeFundsProof } from "../../helpers/bridgeProof";
 import { depositFunds } from "../../helpers/deposit";
@@ -13,23 +13,13 @@ const setup = deployments.createFixture(async () => {
   const checkpointManager = (await ethers.getContract("MockCheckpointManager")) as MockCheckpointManager;
   const token = (await ethers.getContract("TestERC20")) as TestERC20;
 
-  const namedAccounts = await getNamedAccounts();
-
-  await deployments.deploy("ChildWithdrawalBatcher", {
-    from: namedAccounts.admin,
+  const childBatcher = (await deploy("ChildWithdrawalBatcher", {
     args: [token.address, 0, 100],
-    log: true,
-  });
+  })) as ChildWithdrawalBatcher;
 
-  const childBatcher = (await ethers.getContract("ChildWithdrawalBatcher")) as ChildWithdrawalBatcher;
-
-  await deployments.deploy("RootWithdrawalBatcher", {
-    from: namedAccounts.admin,
+  const rootBatcher = (await deploy("RootWithdrawalBatcher", {
     args: [token.address, checkpointManager.address, childBatcher.address],
-    log: true,
-  });
-
-  const rootBatcher = (await ethers.getContract("RootWithdrawalBatcher")) as RootWithdrawalBatcher;
+  })) as RootWithdrawalBatcher;
 
   return {
     checkpointManager,
