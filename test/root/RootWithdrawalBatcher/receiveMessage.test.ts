@@ -1,9 +1,9 @@
 /* eslint-disable func-names */
 import { deployments, ethers, getNamedAccounts } from "hardhat";
-import { BigNumber, ContractReceipt } from "ethers";
+import { BigNumber } from "ethers";
 import { Zero } from "@ethersproject/constants";
 import { ChildWithdrawalBatcher, MockCheckpointManager, RootWithdrawalBatcher, TestERC20 } from "../../../typechain";
-import { chai, encodeDeposit } from "../../helpers";
+import { chai } from "../../helpers";
 import { MAX_UINT96 } from "../../helpers/constants";
 import { buildBridgeFundsProof } from "../../helpers/bridgeProof";
 import { depositFunds } from "../../helpers/deposit";
@@ -88,7 +88,7 @@ describe("RootWithdrawalBatcher", function () {
 
     const bridgeFundsReceipt = await depositFunds(childBatcher, deposits);
 
-    bridgeMessage = await buildBridgeFundsProof(bridgeFundsReceipt.transactionHash, checkpointManager)
+    bridgeMessage = await buildBridgeFundsProof(bridgeFundsReceipt.transactionHash, checkpointManager);
   });
 
   describe("receiveMessage", function () {

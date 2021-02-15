@@ -3,17 +3,22 @@
 pragma solidity 0.6.8;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ECDSA } from "@openzeppelin/contracts/cryptography/ECDSA.sol";
+import { EIP712 } from "@openzeppelin/contracts/drafts/EIP712.sol";
 import { RootWithdrawalBatcherTunnel } from "./RootWithdrawalBatcherTunnel.sol";
 import { DepositEncoder } from "../common/DepositEncoder.sol";
 
-contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
+contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
     using DepositEncoder for bytes32;
 
-    event Claim(address indexed recipient, uint256 amount);
+    event Claim(address indexed balanceOwner, uint256 claimAmount);
 
     IERC20 public immutable withdrawalToken;
 
     mapping(address=>uint256) public balanceOf;
+    mapping(address=>uint256) public claimNonce;
+
+    bytes32 constant CLAIM_TYPEHASH = keccak256("Claim(address balanceOwner,address[] claimReceivers,uint256[] claimAmounts,uint256 nonce)");
 
     /**
      * @dev constructor argument _childTunnel is needed for testing. In a production deploy this should be set to zero
@@ -22,7 +27,11 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
      * @param _checkpointManager - Address of contract containing Matic validator checkpoints
      * @param _childTunnel - address of contract which this contract accepts messages from. Set to 0 in a production deploy.
      */
-    constructor(IERC20 _withdrawalToken, address _checkpointManager, address _childTunnel) public RootWithdrawalBatcherTunnel(_checkpointManager, _childTunnel) {
+    constructor(IERC20 _withdrawalToken, address _checkpointManager, address _childTunnel)
+        public
+        EIP712("RootWithdrawalBatcher", "1")
+        RootWithdrawalBatcherTunnel(_checkpointManager, _childTunnel)
+    {
         withdrawalToken = _withdrawalToken;
     }
 
@@ -30,18 +39,54 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
      * @notice Claim caller's balance, sending the tokens to their address
      */
     function claim() external {
-        claimFor(msg.sender);
+        claim(balanceOf[msg.sender]);
     }
 
     /**
-     * @notice Claim a recipient's balance for them, sending the tokens to their address
-     * @param recipient - the address of the recipient for which to claim
+     * @notice Claim caller's balance, sending the tokens to their address
      */
-    function claimFor(address recipient) public {
-        uint256 amount = balanceOf[recipient];
-        balanceOf[recipient] = 0;
-        require(withdrawalToken.transfer(recipient, amount), "Token transfer failed");
-        emit Claim(recipient, amount);
+    function claim(uint256 claimAmount) public {
+        uint256 balance = balanceOf[msg.sender];
+        balanceOf[msg.sender] = balance - claimAmount;
+        require(balance >= claimAmount, "Balance not sufficient to cover claim");
+        require(withdrawalToken.transfer(msg.sender, claimAmount), "Token transfer failed");
+
+        emit Claim(msg.sender, claimAmount);
+    }
+
+    /**
+     * @notice Claim an address' balance, distributing their tokens to multiple addresses
+     * @dev This allows for delegating claiming a withdrawal by incentivising another recipient to pay the gas instead
+     * @param balanceOwner - the address of the owner of the funds which is being claimed
+     * @param claimReceivers - an array of addresses which will receive a portion of the claimed funds
+     * @param claimAmounts - an array of amounts of tokens to be distributed to each claimReceiver
+     * @param signature - a signature by the balanceOwner authorising this distribution
+     */
+    function claimFor(address balanceOwner, address[] calldata claimReceivers, uint256[] calldata claimAmounts, bytes calldata signature) external {
+        require(claimReceivers.length == claimAmounts.length, "Mismatched lengths of claim arrays");
+
+        // Ensure that balanceOwner authorised this claim
+        if (msg.sender != balanceOwner){
+            verifyClaimSignature(balanceOwner, claimReceivers, claimAmounts, signature);
+        }
+
+        // Calculate size of claim
+        uint256 totalClaimAmount;
+        for (uint256 i = 0; i < claimAmounts.length; i+=1){
+            totalClaimAmount += claimAmounts[i];
+        }
+
+        // Enforce that claim does not exceed balanceOwner's balance
+        uint256 balance = balanceOf[balanceOwner];
+        balanceOf[balanceOwner] = balance - totalClaimAmount;
+        require(balance >= totalClaimAmount, "Recipient balance not sufficient to cover claim");
+
+        // Distribute funds
+        for (uint256 i = 0; i < claimReceivers.length; i += 1){
+            require(withdrawalToken.transfer(claimReceivers[i], claimAmounts[i]), "Token transfer failed");
+        }
+
+        emit Claim(balanceOwner, totalClaimAmount);
     }
 
     /**
@@ -71,5 +116,37 @@ contract RootWithdrawalBatcher is RootWithdrawalBatcherTunnel {
             (address recipient, uint96 amount) = encodedWithdrawal.decodeDeposit();
             balanceOf[recipient] += amount;
         }
+    }
+
+    /**
+     * @notice verifies a signature by the balanceOwner authorising a claim on their funds
+     * @param balanceOwner - the address of the owner of the funds which is being claimed
+     * @param claimReceivers - an array of addresses which will receive a portion of the claimed funds
+     * @param claimAmounts - an array of amounts of tokens to be distributed to each claimReceiver
+     * @param signature - a signature by the balanceOwner authorising this distribution
+     */
+    function verifyClaimSignature(address balanceOwner, address[] memory claimReceivers, uint256[] memory claimAmounts, bytes memory signature) private returns (bool) {
+        uint256 currentNonce = claimNonce[balanceOwner];
+        bytes32 structHash = keccak256(
+            abi.encode(
+                CLAIM_TYPEHASH,
+                balanceOwner,
+                keccak256(abi.encodePacked(claimReceivers)),
+                keccak256(abi.encodePacked(claimAmounts)),
+                currentNonce
+            )
+        );
+        bytes32 digest = _hashTypedDataV4(structHash);
+        claimNonce[balanceOwner] = currentNonce + 1;
+        address signer = ECDSA.recover(digest, signature);
+        require(signer == balanceOwner, "Invalid signature");
+        return true;
+    }
+
+    /**
+     * @notice increments a user's claimNonce to invalidate past signatures
+     */
+    function incrementNonce() external {
+        claimNonce[msg.sender] += 1;
     }
 }

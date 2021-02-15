@@ -1,9 +1,12 @@
 /* eslint-disable func-names */
-import { deployments, ethers, getNamedAccounts } from "hardhat";
-import { BigNumber, ContractReceipt } from "ethers";
-import { Zero } from "@ethersproject/constants";
+import { deployments, ethers, getNamedAccounts, network } from "hardhat";
+import { BigNumber } from "@ethersproject/bignumber";
+import { defaultAbiCoder } from "@ethersproject/abi";
+import { keccak256 } from "@ethersproject/keccak256";
+import { keccak256 as solidityKeccak256 } from "@ethersproject/solidity";
+import { Wallet } from "ethers";
 import { ChildWithdrawalBatcher, MockCheckpointManager, RootWithdrawalBatcher, TestERC20 } from "../../../typechain";
-import { chai, encodeDeposit } from "../../helpers";
+import { chai } from "../../helpers";
 import { MAX_UINT96 } from "../../helpers/constants";
 import { buildBridgeFundsProof } from "../../helpers/bridgeProof";
 import { depositFunds } from "../../helpers/deposit";
@@ -41,50 +44,60 @@ const setup = deployments.createFixture(async () => {
   };
 });
 
+const hashDomain = (contractName: string, version: string, chainId: number, verifyingContract: string) => {
+  const domainTypeHash = solidityKeccak256(
+    ["string"],
+    ["EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"],
+  );
+  const domainStruct = keccak256(
+    defaultAbiCoder.encode(
+      ["bytes32", "bytes32", "bytes32", "uint256", "address"],
+      [
+        domainTypeHash,
+        solidityKeccak256(["string"], [contractName]),
+        solidityKeccak256(["string"], [version]),
+        chainId,
+        verifyingContract,
+      ],
+    ),
+  );
 
-const deposits: [string, string][] = [
-  ["0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8", "10"],
-  ["0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8", "10"],
-  ["0xf35a15fa6dc1C11C8F242663fEa308Cd85688adA", "100"],
-  ["0xdc76cd25977e0a5ae17155770273ad58648900d3", "10"],
-  ["0x73BCEb1Cd57C711feaC4224D062b0F6ff338501e", "10"],
-  ["0x3c97042B5FA4Ae3523498EF0DbaCD0a909423b52", "10"],
-  ["0x229b5c097F9b35009CA1321Ad2034D4b3D5070F6", "10"],
-  ["0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE", "820000000"],
-  ["0xe853c56864a2ebe4576a807d26fdc4a0ada51919", "10"],
-  ["0x59448fe20378357F206880c58068f095ae63d5A5", "6"],
-  ["0xf66852bC122fD40bFECc63CD48217E88bda12109", "10"],
-  ["0x9BF4001d307dFd62B26A2F1307ee0C0307632d59", "10"],
-  ["0xe0F5B79Ef9F748562A21D017Bb7a6706954b7585", "10"],
-  ["0x2B6eD29A95753C3Ad948348e3e7b1A251080Ffb9", "50"],
-  ["0xC098B2a3Aa256D2140208C3de6543aAEf5cd3A94", "10"],
-  ["0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B", "10000"],
-  ["0x558553D54183a8542F7832742e7B4Ba9c33Aa1E6", "10"],
-  ["0x1e2FCfd26d36183f1A5d90f0e6296915b02BCb40", "10"],
-  ["0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8", "10"],
-  ["0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE", "560"],
-  ["0x189B9cBd4AfF470aF2C0102f365FC1823d857965", "10"],
-  ["0x0a4c79cE84202b03e95B7a692E5D728d83C44c76", "10"],
-  ["0x0548F59fEE79f8832C299e01dCA5c76F034F558e", "12"],
-  ["0x701bd63938518d7DB7e0f00945110c80c67df532", "10"],
-  ["0xf35a15fa6dc1C11C8F242663fEa308Cd85688adA", "1"],
-];
+  return domainStruct;
+};
 
-const expectedBalances = deposits.reduce((acc, [recipient, amount]) => {
-  acc[recipient] = (acc[recipient] || Zero).add(amount);
-  return acc;
-}, {} as { [key: string]: BigNumber });
+const hashStruct = (balanceOwner: string, claimReceivers: string[], claimAmounts: string[], nonce = 0) => {
+  const dataTypeHash = solidityKeccak256(
+    ["string"],
+    ["Claim(address balanceOwner,address[] claimReceivers,uint256[] claimAmounts,uint256 nonce)"],
+  );
+  const claimReceiversHash = solidityKeccak256(["address[]"], [claimReceivers]);
+  const claimAmountsHash = solidityKeccak256(["uint256[]"], [claimAmounts]);
+  const hashStruct = solidityKeccak256(
+    ["bytes32", "uint256", "bytes32", "bytes32", "uint256"],
+    [dataTypeHash, balanceOwner, claimReceiversHash, claimAmountsHash, nonce],
+  );
+
+  return hashStruct;
+};
+
+// Signers given by hardhat aren't flexible enough to perform the signature we need
+const balanceOwnerWallet = new Wallet("0xb284432e507043ac619a61aaadcea677f013c3c2300f8aea3a449f4d1b1fb524");
+const balanceOwner = balanceOwnerWallet.address;
 
 describe("RootWithdrawalBatcher", function () {
   let rootBatcher: RootWithdrawalBatcher;
   let token: TestERC20;
+  let admin: string;
   beforeEach(async function () {
     const deployment = await setup();
     rootBatcher = deployment.rootBatcher;
     token = deployment.token;
 
     const { checkpointManager, childBatcher } = deployment;
-    const { admin } = await getNamedAccounts();
+    const namedAccounts = await getNamedAccounts();
+    admin = namedAccounts.admin;
+
+    const deposits: [string, string][] = [[balanceOwner, "100"]];
 
     await token["mint(address,uint256)"](admin, MAX_UINT96);
     await token.approve(childBatcher.address, MAX_UINT96);
@@ -92,31 +105,62 @@ describe("RootWithdrawalBatcher", function () {
 
     const bridgeFundsReceipt = await depositFunds(childBatcher, deposits);
 
-    const bridgeMessage = await buildBridgeFundsProof(bridgeFundsReceipt.transactionHash, checkpointManager)
+    const bridgeMessage = await buildBridgeFundsProof(bridgeFundsReceipt.transactionHash, checkpointManager);
     await rootBatcher.receiveMessage(bridgeMessage);
   });
 
   describe("claimFor", function () {
-    Object.entries(expectedBalances).forEach(([recipient, amount]) => {
+    const claimReceivers: string[] = [balanceOwner];
+    const claimAmounts = ["100"];
+    let signature: string;
+
+    beforeEach("User signs approval for claim", async function () {
+      if (network.config.chainId === undefined) {
+        throw Error("No chainId");
+      }
+
+      const domain = {
+        name: "RootWithdrawalBatcher",
+        version: "1",
+        chainId: network.config.chainId,
+        verifyingContract: rootBatcher.address,
+      };
+      const types = {
+        Claim: [
+          { name: "balanceOwner", type: "address" },
+          { name: "claimReceivers", type: "address[]" },
+          { name: "claimAmounts", type: "uint256[]" },
+          { name: "nonce", type: "uint256" },
+        ],
+      };
+      const value = {
+        balanceOwner,
+        claimReceivers,
+        claimAmounts,
+        nonce: 0,
+      };
+
+      // eslint-disable-next-line no-underscore-dangle
+      signature = await balanceOwnerWallet._signTypedData(domain, types, value);
+    });
+
+    claimReceivers.forEach((claimReceiver, index) => {
       it("transfers the expected amount to the recipient", async function () {
-        const userBalanceBefore = await token.balanceOf(recipient);
-        const contractBalanceBefore = await token.balanceOf(rootBatcher.address);
-        await rootBatcher.claimFor(recipient);
-        const userBalanceAfter = await token.balanceOf(recipient);
-        const contractBalanceAfter = await token.balanceOf(rootBatcher.address);
+        const userBalanceBefore = await token.balanceOf(claimReceiver);
+        await rootBatcher.claimFor(balanceOwner, claimReceivers, claimAmounts, signature);
+        const userBalanceAfter = await token.balanceOf(claimReceiver);
 
-        expect(userBalanceAfter.sub(userBalanceBefore)).to.eq(amount);
-        expect(contractBalanceBefore.sub(contractBalanceAfter)).to.eq(amount);
+        expect(userBalanceAfter.sub(userBalanceBefore)).to.eq(claimAmounts[index]);
       });
+    });
 
-      it("it sets the recipient's internal balance to zero", async function () {
-        expect(await rootBatcher.balanceOf(recipient)).to.be.eq(
-          amount,
-          "zero initial balance when testing claiming deposits",
-        );
-        await rootBatcher.claimFor(recipient);
-        expect(await rootBatcher.balanceOf(recipient)).to.be.eq(0);
-      });
+    it("it reduces the balanceOwner's internal balance by the total claim amount", async function () {
+      const internalBalanceBefore = await rootBatcher.balanceOf(balanceOwner);
+      await rootBatcher.claimFor(balanceOwner, claimReceivers, claimAmounts, signature);
+      const internalBalanceAfter = await rootBatcher.balanceOf(balanceOwner);
+      expect(internalBalanceBefore.sub(internalBalanceAfter)).to.be.eq(
+        claimAmounts.reduce((a, b) => BigNumber.from(a).add(b).toString()),
+      );
     });
   });
 });

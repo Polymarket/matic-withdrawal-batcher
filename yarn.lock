@@ -326,7 +326,7 @@
     "@ethersproject/properties" "^5.0.7"
     "@ethersproject/strings" "^5.0.8"
 
-"@ethersproject/abi@5.0.12", "@ethersproject/abi@^5.0.0-beta.146", "@ethersproject/abi@^5.0.10":
+"@ethersproject/abi@5.0.12", "@ethersproject/abi@^5.0.0-beta.146", "@ethersproject/abi@^5.0.10", "@ethersproject/abi@^5.0.12":
   version "5.0.12"
   resolved "https://registry.yarnpkg.com/@ethersproject/abi/-/abi-5.0.12.tgz#9aebe6aedc05ce45bb6c41b06d80bd195b7de77c"
   integrity sha512-Ujr/3bwyYYjXLDQfebeiiTuvOw9XtUKM8av6YkoBeMXyGQM9GkjrQlwJMNwGTmqjATH/ZNbRgCh98GjOLiIB1Q==
@@ -548,7 +548,7 @@
     aes-js "3.0.0"
     scrypt-js "3.0.1"
 
-"@ethersproject/keccak256@5.0.8", "@ethersproject/keccak256@>=5.0.0-beta.127", "@ethersproject/keccak256@^5.0.7":
+"@ethersproject/keccak256@5.0.8", "@ethersproject/keccak256@>=5.0.0-beta.127", "@ethersproject/keccak256@^5.0.7", "@ethersproject/keccak256@^5.0.8":
   version "5.0.8"
   resolved "https://registry.yarnpkg.com/@ethersproject/keccak256/-/keccak256-5.0.8.tgz#13aaf69e1c8bd15fc59a2ebd055c0878f2a059c8"
   integrity sha512-zoGbwXcWWs9MX4NOAZ7N0hhgIRl4Q/IO/u9c/RHRY4WqDy3Ywm0OLamEV53QDwhjwn3YiiVwU1Ve5j7yJ0a/KQ==
@@ -703,7 +703,7 @@
     "@ethersproject/properties" "^5.0.7"
     elliptic "6.5.3"
 
-"@ethersproject/solidity@5.0.9":
+"@ethersproject/solidity@5.0.9", "@ethersproject/solidity@^5.0.9":
   version "5.0.9"
   resolved "https://registry.yarnpkg.com/@ethersproject/solidity/-/solidity-5.0.9.tgz#49100fbe9f364ac56f7ff7c726f4f3d151901134"
   integrity sha512-LIxSAYEQgLRXE3mRPCq39ou61kqP8fDrGqEeNcaNJS3aLbmAOS8MZp56uK++WsdI9hj8sNsFh78hrAa6zR9Jag==
@@ -734,7 +734,7 @@
     "@ethersproject/constants" "^5.0.8"
     "@ethersproject/logger" "^5.0.8"
 
-"@ethersproject/transactions@5.0.10", "@ethersproject/transactions@^5.0.0-beta.135", "@ethersproject/transactions@^5.0.9":
+"@ethersproject/transactions@5.0.10", "@ethersproject/transactions@^5.0.0-beta.135", "@ethersproject/transactions@^5.0.10", "@ethersproject/transactions@^5.0.9":
   version "5.0.10"
   resolved "https://registry.yarnpkg.com/@ethersproject/transactions/-/transactions-5.0.10.tgz#d50cafd80d27206336f80114bc0f18bc18687331"
   integrity sha512-Tqpp+vKYQyQdJQQk4M73tDzO7ODf2D42/sJOcKlDAAbdSni13v6a+31hUdo02qYXhVYwIs+ZjHnO4zKv5BNk8w==

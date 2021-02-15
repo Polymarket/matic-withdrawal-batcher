@@ -1,9 +1,7 @@
 /* eslint-disable func-names */
 import { deployments, ethers, getNamedAccounts } from "hardhat";
-import { BigNumber, ContractReceipt } from "ethers";
-import { Zero } from "@ethersproject/constants";
 import { ChildWithdrawalBatcher, MockCheckpointManager, RootWithdrawalBatcher, TestERC20 } from "../../../typechain";
-import { chai, encodeDeposit } from "../../helpers";
+import { chai } from "../../helpers";
 import { MAX_UINT96 } from "../../helpers/constants";
 import { buildBridgeFundsProof } from "../../helpers/bridgeProof";
 import { depositFunds } from "../../helpers/deposit";
@@ -61,7 +59,7 @@ describe("RootWithdrawalBatcher", function () {
 
     const bridgeFundsReceipt = await depositFunds(childBatcher, [[admin, amount]]);
 
-    const bridgeMessage = await buildBridgeFundsProof(bridgeFundsReceipt.transactionHash, checkpointManager)
+    const bridgeMessage = await buildBridgeFundsProof(bridgeFundsReceipt.transactionHash, checkpointManager);
     await rootBatcher.receiveMessage(bridgeMessage);
   });
 
@@ -69,7 +67,7 @@ describe("RootWithdrawalBatcher", function () {
     it("transfers the expected amount to the recipient", async function () {
       const userBalanceBefore = await token.balanceOf(admin);
       const contractBalanceBefore = await token.balanceOf(rootBatcher.address);
-      await rootBatcher.claim();
+      await rootBatcher["claim()"]();
       const userBalanceAfter = await token.balanceOf(admin);
       const contractBalanceAfter = await token.balanceOf(rootBatcher.address);
 
@@ -79,7 +77,7 @@ describe("RootWithdrawalBatcher", function () {
 
     it("it sets the recipient's internal balance to zero", async function () {
       expect(await rootBatcher.balanceOf(admin)).to.be.gt(0, "zero initial balance when testing claiming deposits");
-      await rootBatcher.claim();
+      await rootBatcher["claim()"]();
       expect(await rootBatcher.balanceOf(admin)).to.be.eq(0);
     });
   });
