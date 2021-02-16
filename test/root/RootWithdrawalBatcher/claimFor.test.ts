@@ -1,9 +1,6 @@
 /* eslint-disable func-names */
 import { deployments, ethers, getNamedAccounts, network } from "hardhat";
 import { BigNumber } from "@ethersproject/bignumber";
-import { defaultAbiCoder } from "@ethersproject/abi";
-import { keccak256 } from "@ethersproject/keccak256";
-import { keccak256 as solidityKeccak256 } from "@ethersproject/solidity";
 import { Wallet } from "ethers";
 import { ChildWithdrawalBatcher, MockCheckpointManager, RootWithdrawalBatcher, TestERC20 } from "../../../typechain";
 import { chai, deploy } from "../../helpers";
@@ -33,42 +30,6 @@ const setup = deployments.createFixture(async () => {
     token,
   };
 });
-
-const hashDomain = (contractName: string, version: string, chainId: number, verifyingContract: string) => {
-  const domainTypeHash = solidityKeccak256(
-    ["string"],
-    ["EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"],
-  );
-  const domainStruct = keccak256(
-    defaultAbiCoder.encode(
-      ["bytes32", "bytes32", "bytes32", "uint256", "address"],
-      [
-        domainTypeHash,
-        solidityKeccak256(["string"], [contractName]),
-        solidityKeccak256(["string"], [version]),
-        chainId,
-        verifyingContract,
-      ],
-    ),
-  );
-
-  return domainStruct;
-};
-
-const hashStruct = (balanceOwner: string, claimReceivers: string[], claimAmounts: string[], nonce = 0) => {
-  const dataTypeHash = solidityKeccak256(
-    ["string"],
-    ["Claim(address balanceOwner,address[] claimReceivers,uint256[] claimAmounts,uint256 nonce)"],
-  );
-  const claimReceiversHash = solidityKeccak256(["address[]"], [claimReceivers]);
-  const claimAmountsHash = solidityKeccak256(["uint256[]"], [claimAmounts]);
-  const hashStruct = solidityKeccak256(
-    ["bytes32", "uint256", "bytes32", "bytes32", "uint256"],
-    [dataTypeHash, balanceOwner, claimReceiversHash, claimAmountsHash, nonce],
-  );
-
-  return hashStruct;
-};
 
 // Signers given by hardhat aren't flexible enough to perform the signature we need
 const balanceOwnerWallet = new Wallet("0xb284432e507043ac619a61aaadcea677f013c3c2300f8aea3a449f4d1b1fb524");
