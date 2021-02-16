@@ -32,7 +32,9 @@ const setup = deployments.createFixture(async () => {
 });
 
 // Signers given by hardhat aren't flexible enough to perform the signature we need
-const balanceOwnerWallet = new Wallet("0xb284432e507043ac619a61aaadcea677f013c3c2300f8aea3a449f4d1b1fb524");
+// Private key holds zero funds
+const JUNK_PRIVATE_KEY = "0xb284432e507043ac619a61aaadcea677f013c3c2300f8aea3a449f4d1b1fb524";
+const balanceOwnerWallet = new Wallet(JUNK_PRIVATE_KEY);
 const balanceOwner = balanceOwnerWallet.address;
 
 describe("RootWithdrawalBatcher", function () {
