@@ -127,7 +127,7 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
      */
     function verifyClaimSignature(address balanceOwner, address[] memory claimReceivers, uint256[] memory claimAmounts, bytes memory signature) private returns (bool) {
         uint256 currentNonce = claimNonce[balanceOwner];
-        bytes32 structHash = keccak256(
+        bytes32 digest = _hashTypedDataV4(keccak256(
             abi.encode(
                 CLAIM_TYPEHASH,
                 balanceOwner,
@@ -135,8 +135,7 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
                 keccak256(abi.encodePacked(claimAmounts)),
                 currentNonce
             )
-        );
-        bytes32 digest = _hashTypedDataV4(structHash);
+        ));
         claimNonce[balanceOwner] = currentNonce + 1;
         address signer = ECDSA.recover(digest, signature);
         require(signer == balanceOwner, "Invalid signature");
