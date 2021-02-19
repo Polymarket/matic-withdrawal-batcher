@@ -18,7 +18,7 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
     mapping(address=>uint256) public balanceOf;
     mapping(address=>uint256) public claimNonce;
 
-    bytes32 constant CLAIM_TYPEHASH = keccak256("Claim(address balanceOwner,address[] claimReceivers,uint256[] claimAmounts,uint256 nonce)");
+    bytes32 constant CLAIM_TYPEHASH = keccak256("Claim(address balanceOwner,address[] claimReceivers,uint256[] claimAmounts,bool[] internalClaims,uint256 nonce)");
 
     /**
      * @dev constructor argument _childTunnel is needed for testing. In a production deploy this should be set to zero
@@ -60,14 +60,15 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
      * @param balanceOwner - the address of the owner of the funds which is being claimed
      * @param claimReceivers - an array of addresses which will receive a portion of the claimed funds
      * @param claimAmounts - an array of amounts of tokens to be distributed to each claimReceiver
+     * @param internalClaims - an array of booleans representing whether the claimAmount should be sent to the claimReceiver's internal balance 
      * @param signature - a signature by the balanceOwner authorising this distribution
      */
-    function claimFor(address balanceOwner, address[] calldata claimReceivers, uint256[] calldata claimAmounts, bytes calldata signature) external {
+    function claimFor(address balanceOwner, address[] calldata claimReceivers, uint256[] calldata claimAmounts, bool[] calldata internalClaims, bytes calldata signature) external {
         require(claimReceivers.length == claimAmounts.length, "Mismatched lengths of claim arrays");
 
         // Ensure that balanceOwner authorised this claim
         if (msg.sender != balanceOwner){
-            verifyClaimSignature(balanceOwner, claimReceivers, claimAmounts, signature);
+            verifyClaimSignature(balanceOwner, claimReceivers, claimAmounts, internalClaims, signature);
         }
 
         // Calculate size of claim
@@ -81,9 +82,13 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
         balanceOf[balanceOwner] = balance - totalClaimAmount;
         require(balance >= totalClaimAmount, "Recipient balance not sufficient to cover claim");
 
-        // Distribute funds
+        // Distribute funds through internal balance transfers or erc20 transfers
         for (uint256 i = 0; i < claimReceivers.length; i += 1){
-            require(withdrawalToken.transfer(claimReceivers[i], claimAmounts[i]), "Token transfer failed");
+            if (internalClaims[i]) {
+                balanceOf[claimReceivers[i]] += claimAmounts[i];
+            } else {
+                require(withdrawalToken.transfer(claimReceivers[i], claimAmounts[i]), "Token transfer failed");
+            }
         }
 
         emit Claim(balanceOwner, totalClaimAmount);
@@ -123,9 +128,10 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
      * @param balanceOwner - the address of the owner of the funds which is being claimed
      * @param claimReceivers - an array of addresses which will receive a portion of the claimed funds
      * @param claimAmounts - an array of amounts of tokens to be distributed to each claimReceiver
+     * @param internalClaims - an array of booleans representing whether the claimAmount should be sent to the claimReceiver's internal balance 
      * @param signature - a signature by the balanceOwner authorising this distribution
      */
-    function verifyClaimSignature(address balanceOwner, address[] memory claimReceivers, uint256[] memory claimAmounts, bytes memory signature) private returns (bool) {
+    function verifyClaimSignature(address balanceOwner, address[] memory claimReceivers, uint256[] memory claimAmounts, bool[] memory internalClaims, bytes memory signature) private returns (bool) {
         uint256 currentNonce = claimNonce[balanceOwner];
         bytes32 digest = _hashTypedDataV4(keccak256(
             abi.encode(
@@ -133,6 +139,7 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
                 balanceOwner,
                 keccak256(abi.encodePacked(claimReceivers)),
                 keccak256(abi.encodePacked(claimAmounts)),
+                keccak256(abi.encodePacked(internalClaims)),
                 currentNonce
             )
         ));

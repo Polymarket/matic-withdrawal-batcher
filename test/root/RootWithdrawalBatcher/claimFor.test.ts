@@ -65,6 +65,7 @@ describe("RootWithdrawalBatcher", function () {
   describe("claimFor", function () {
     const claimReceivers: string[] = [balanceOwner];
     const claimAmounts = ["100"];
+    const internalClaims = [false];
     let signature: string;
 
     beforeEach("User signs approval for claim", async function () {
@@ -83,6 +84,7 @@ describe("RootWithdrawalBatcher", function () {
           { name: "balanceOwner", type: "address" },
           { name: "claimReceivers", type: "address[]" },
           { name: "claimAmounts", type: "uint256[]" },
+          { name: "internalClaims", type: "bool[]" },
           { name: "nonce", type: "uint256" },
         ],
       };
@@ -90,6 +92,7 @@ describe("RootWithdrawalBatcher", function () {
         balanceOwner,
         claimReceivers,
         claimAmounts,
+        internalClaims,
         nonce: 0,
       };
 
@@ -100,7 +103,7 @@ describe("RootWithdrawalBatcher", function () {
     claimReceivers.forEach((claimReceiver, index) => {
       it("transfers the expected amount to the recipient", async function () {
         const userBalanceBefore = await token.balanceOf(claimReceiver);
-        await rootBatcher.claimFor(balanceOwner, claimReceivers, claimAmounts, signature);
+        await rootBatcher.claimFor(balanceOwner, claimReceivers, claimAmounts, internalClaims, signature);
         const userBalanceAfter = await token.balanceOf(claimReceiver);
 
         expect(userBalanceAfter.sub(userBalanceBefore)).to.eq(claimAmounts[index]);
@@ -109,7 +112,7 @@ describe("RootWithdrawalBatcher", function () {
 
     it("it reduces the balanceOwner's internal balance by the total claim amount", async function () {
       const internalBalanceBefore = await rootBatcher.balanceOf(balanceOwner);
-      await rootBatcher.claimFor(balanceOwner, claimReceivers, claimAmounts, signature);
+      await rootBatcher.claimFor(balanceOwner, claimReceivers, claimAmounts, internalClaims, signature);
       const internalBalanceAfter = await rootBatcher.balanceOf(balanceOwner);
       expect(internalBalanceBefore.sub(internalBalanceAfter)).to.be.eq(
         claimAmounts.reduce((a, b) => BigNumber.from(a).add(b).toString()),
