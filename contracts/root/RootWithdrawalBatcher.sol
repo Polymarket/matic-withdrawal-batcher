@@ -65,6 +65,8 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
      */
     function claimFor(address balanceOwner, address[] calldata claimReceivers, uint256[] calldata claimAmounts, bool[] calldata internalClaims, bytes calldata signature) external {
         require(claimReceivers.length == claimAmounts.length, "Mismatched lengths of claim arrays");
+        require(claimReceivers.length == internalClaims.length, "Mismatched lengths of claim arrays");
+
 
         // Ensure that balanceOwner authorised this claim
         if (msg.sender != balanceOwner){
