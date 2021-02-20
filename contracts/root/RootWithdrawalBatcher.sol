@@ -73,27 +73,27 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
             verifyClaimSignature(balanceOwner, claimReceivers, claimAmounts, internalClaims, signature);
         }
 
-        // Calculate size of claim
-        uint256 totalClaimAmount;
-        for (uint256 i = 0; i < claimAmounts.length; i+=1){
-            totalClaimAmount += claimAmounts[i];
-        }
-
-        // Enforce that claim does not exceed balanceOwner's balance
-        uint256 balance = balanceOf[balanceOwner];
-        balanceOf[balanceOwner] = balance - totalClaimAmount;
-        require(balance >= totalClaimAmount, "Recipient balance not sufficient to cover claim");
-
-        // Distribute funds through internal balance transfers or erc20 transfers
+        uint256 initialBalance = balanceOf[balanceOwner];
+        uint256 balance = initialBalance;
+        // Distribute funds
         for (uint256 i = 0; i < claimReceivers.length; i += 1){
+            // Decrease balanceOwner's balance
+            uint256 claimAmount = claimAmounts[i];
+            require(balance >= claimAmount, "balancerOwner's balance not sufficient to cover claim");
+            balance -= claimAmount;
+            
+            // Send funds to claimReceiver
             if (internalClaims[i]) {
-                balanceOf[claimReceivers[i]] += claimAmounts[i];
+                // An internal claim to the balanceOwner will result in loss of funds
+                require(claimReceivers[i] != balanceOwner, "Can't perform internal transfer to balanceOwner");
+                balanceOf[claimReceivers[i]] += claimAmount;
             } else {
-                require(withdrawalToken.transfer(claimReceivers[i], claimAmounts[i]), "Token transfer failed");
+                require(withdrawalToken.transfer(claimReceivers[i], claimAmount), "Token transfer failed");
             }
         }
-
-        emit Claim(balanceOwner, totalClaimAmount);
+     
+        balanceOf[balanceOwner] = balance;
+        emit Claim(balanceOwner, initialBalance - balance);
     }
 
     /**
