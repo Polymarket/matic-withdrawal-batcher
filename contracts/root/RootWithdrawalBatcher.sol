@@ -146,8 +146,7 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
             )
         ));
         claimNonce[balanceOwner] = currentNonce + 1;
-        address signer = ECDSA.recover(digest, signature);
-        require(signer == balanceOwner, "Invalid signature");
+        require(balanceOwner == ECDSA.recover(digest, signature), "Invalid signature");
         return true;
     }
 
