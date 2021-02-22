@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.6.8;
+pragma experimental ABIEncoderV2;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ECDSA } from "@openzeppelin/contracts/cryptography/ECDSA.sol";
@@ -11,14 +12,21 @@ import { DepositEncoder } from "../common/DepositEncoder.sol";
 contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
     using DepositEncoder for bytes32;
 
-    event Claim(address indexed balanceOwner, uint256 claimAmount);
+    event FundsClaimed(address indexed balanceOwner, uint256 claimAmount);
 
     IERC20 public immutable withdrawalToken;
 
     mapping(address=>uint256) public balanceOf;
     mapping(address=>uint256) public claimNonce;
 
-    bytes32 constant CLAIM_TYPEHASH = keccak256("Claim(address balanceOwner,address[] claimReceivers,uint256[] claimAmounts,bool[] internalClaims,uint256 nonce)");
+    bytes32 constant CLAIM_TYPEHASH = keccak256("Claim(address recipient,uint256 amount,bool internalClaim)");
+    bytes32 constant DISTRIBUTION_TYPEHASH = keccak256("ClaimDistribution(address balanceOwner,Claim[] claims,uint256 nonce)Claim(address recipient,uint256 amount,bool internalClaim)");
+
+    struct Claim {
+        address recipient;
+        uint256 amount;
+        bool internalClaim;
+    }
 
     /**
      * @dev constructor argument _childTunnel is needed for testing. In a production deploy this should be set to zero
@@ -51,49 +59,44 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
         require(balance >= claimAmount, "Balance not sufficient to cover claim");
         require(withdrawalToken.transfer(msg.sender, claimAmount), "Token transfer failed");
 
-        emit Claim(msg.sender, claimAmount);
+        emit FundsClaimed(msg.sender, claimAmount);
     }
 
     /**
      * @notice Claim an address' balance, distributing their tokens to multiple addresses
      * @dev This allows for delegating claiming a withdrawal by incentivising another recipient to pay the gas instead
      * @param balanceOwner - the address of the owner of the funds which is being claimed
-     * @param claimReceivers - an array of addresses which will receive a portion of the claimed funds
-     * @param claimAmounts - an array of amounts of tokens to be distributed to each claimReceiver
-     * @param internalClaims - an array of booleans representing whether the claimAmount should be sent to the claimReceiver's internal balance 
+     * @param claims - An array of claims describing how to distribute the balanceOwner's funds
      * @param signature - a signature by the balanceOwner authorising this distribution
      */
-    function claimFor(address balanceOwner, address[] calldata claimReceivers, uint256[] calldata claimAmounts, bool[] calldata internalClaims, bytes calldata signature) external {
-        require(claimReceivers.length == claimAmounts.length, "Mismatched lengths of claim arrays");
-        require(claimReceivers.length == internalClaims.length, "Mismatched lengths of claim arrays");
-
+    function claimFor(address balanceOwner, Claim[] calldata claims, bytes calldata signature) external {
 
         // Ensure that balanceOwner authorised this claim
         if (msg.sender != balanceOwner){
-            verifyClaimSignature(balanceOwner, claimReceivers, claimAmounts, internalClaims, signature);
+            verifyClaimSignature(balanceOwner, claims, signature);
         }
 
         uint256 initialBalance = balanceOf[balanceOwner];
         uint256 balance = initialBalance;
         // Distribute funds
-        for (uint256 i = 0; i < claimReceivers.length; i += 1){
+        for (uint256 i = 0; i < claims.length; i += 1){
             // Decrease balanceOwner's balance
-            uint256 claimAmount = claimAmounts[i];
+            uint256 claimAmount = claims[i].amount;
             require(balance >= claimAmount, "balancerOwner's balance not sufficient to cover claim");
             balance -= claimAmount;
             
             // Send funds to claimReceiver
-            if (internalClaims[i]) {
+            if (claims[i].internalClaim) {
                 // An internal claim to the balanceOwner will result in loss of funds
-                require(claimReceivers[i] != balanceOwner, "Can't perform internal transfer to balanceOwner");
-                balanceOf[claimReceivers[i]] += claimAmount;
+                require(claims[i].recipient != balanceOwner, "Can't perform internal transfer to balanceOwner");
+                balanceOf[claims[i].recipient] += claimAmount;
             } else {
-                require(withdrawalToken.transfer(claimReceivers[i], claimAmount), "Token transfer failed");
+                require(withdrawalToken.transfer(claims[i].recipient, claimAmount), "Token transfer failed");
             }
         }
      
         balanceOf[balanceOwner] = balance;
-        emit Claim(balanceOwner, initialBalance - balance);
+        emit FundsClaimed(balanceOwner, initialBalance - balance);
     }
 
     /**
@@ -126,22 +129,31 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
     }
 
     /**
+     * @notice hashes an array of claims
+     * @param claims - An array of claims describing how to distribute the balanceOwner's funds
+     */
+    function hashClaims(Claim[] memory claims) private returns (bytes32) {
+        bytes32[] memory claimHashes = new bytes32[](claims.length);
+        for (uint256 i = 0; i < claims.length; i += 1){
+            Claim memory claim = claims[i];
+            claimHashes[i] = keccak256(abi.encode(CLAIM_TYPEHASH, claim.recipient, claim.amount, claim.internalClaim));
+        }
+        return keccak256(abi.encodePacked(claimHashes));
+    }
+
+    /**
      * @notice verifies a signature by the balanceOwner authorising a claim on their funds
      * @param balanceOwner - the address of the owner of the funds which is being claimed
-     * @param claimReceivers - an array of addresses which will receive a portion of the claimed funds
-     * @param claimAmounts - an array of amounts of tokens to be distributed to each claimReceiver
-     * @param internalClaims - an array of booleans representing whether the claimAmount should be sent to the claimReceiver's internal balance 
+     * @param claims - An array of claims describing how to distribute the balanceOwner's funds
      * @param signature - a signature by the balanceOwner authorising this distribution
      */
-    function verifyClaimSignature(address balanceOwner, address[] memory claimReceivers, uint256[] memory claimAmounts, bool[] memory internalClaims, bytes memory signature) private returns (bool) {
+    function verifyClaimSignature(address balanceOwner, Claim[] memory claims, bytes memory signature) private returns (bool) {
         uint256 currentNonce = claimNonce[balanceOwner];
         bytes32 digest = _hashTypedDataV4(keccak256(
             abi.encode(
-                CLAIM_TYPEHASH,
+                DISTRIBUTION_TYPEHASH,
                 balanceOwner,
-                keccak256(abi.encodePacked(claimReceivers)),
-                keccak256(abi.encodePacked(claimAmounts)),
-                keccak256(abi.encodePacked(internalClaims)),
+                hashClaims(claims),
                 currentNonce
             )
         ));
