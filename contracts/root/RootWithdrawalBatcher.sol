@@ -135,8 +135,7 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
     function hashClaims(Claim[] memory claims) private returns (bytes32) {
         bytes32[] memory claimHashes = new bytes32[](claims.length);
         for (uint256 i = 0; i < claims.length; i += 1){
-            Claim memory claim = claims[i];
-            claimHashes[i] = keccak256(abi.encode(CLAIM_TYPEHASH, claim.recipient, claim.amount, claim.internalClaim));
+            claimHashes[i] = keccak256(abi.encode(CLAIM_TYPEHASH, claims[i]));
         }
         return keccak256(abi.encodePacked(claimHashes));
     }
