@@ -1,30 +1,28 @@
 /* eslint-disable func-names */
-import { deployments, ethers, getNamedAccounts } from "hardhat";
-import { ChildWithdrawalBatcher, MockCheckpointManager, RootWithdrawalBatcher, TestERC20 } from "../../../typechain";
+import { deployments, getNamedAccounts } from "hardhat";
+import { AddressZero } from "@ethersproject/constants";
+import { RootWithdrawalBatcher, TestERC20, TestRootWithdrawalBatcher } from "../../../typechain";
 import { chai, deploy } from "../../helpers";
 import { MAX_UINT96 } from "../../helpers/constants";
-import { buildBridgeFundsProof } from "../../helpers/bridgeProof";
-import { depositFunds } from "../../helpers/deposit";
 
 const { expect } = chai;
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture(["Matic"]);
-  const checkpointManager = (await ethers.getContract("MockCheckpointManager")) as MockCheckpointManager;
-  const token = (await ethers.getContract("TestERC20")) as TestERC20;
+  const token = (await deploy("TestERC20", { args: [] })) as TestERC20;
 
-  const childBatcher = (await deploy("ChildWithdrawalBatcher", {
-    args: [token.address, 0, 100],
-  })) as ChildWithdrawalBatcher;
+  const rootBatcher = (await deploy("TestRootWithdrawalBatcher", {
+    args: [token.address, AddressZero, AddressZero],
+  })) as TestRootWithdrawalBatcher;
 
-  const rootBatcher = (await deploy("RootWithdrawalBatcher", {
-    args: [token.address, checkpointManager.address, childBatcher.address],
-  })) as RootWithdrawalBatcher;
+  const { admin } = await getNamedAccounts();
+
+  // We mint some tokens to the rootBatcher to simulate an exit from Matic
+  await token["mint(address,uint256)"](rootBatcher.address, MAX_UINT96);
+  // Give the balanceOwner an initial balance
+  await rootBatcher.increaseBalance(admin, "100");
 
   return {
-    checkpointManager,
-    childBatcher,
-    rootBatcher,
+    rootBatcher: rootBatcher as RootWithdrawalBatcher,
     token,
   };
 });
@@ -38,19 +36,8 @@ describe("RootWithdrawalBatcher", function () {
     const deployment = await setup();
     rootBatcher = deployment.rootBatcher;
     token = deployment.token;
-
-    const { checkpointManager, childBatcher } = deployment;
     const namedAccounts = await getNamedAccounts();
     admin = namedAccounts.admin;
-
-    await token["mint(address,uint256)"](admin, MAX_UINT96);
-    await token.approve(childBatcher.address, MAX_UINT96);
-    await token["mint(address,uint256)"](rootBatcher.address, MAX_UINT96);
-
-    const bridgeFundsReceipt = await depositFunds(childBatcher, [[admin, amount]]);
-
-    const bridgeMessage = await buildBridgeFundsProof(bridgeFundsReceipt.transactionHash, checkpointManager);
-    await rootBatcher.receiveMessage(bridgeMessage);
   });
 
   describe("claim", function () {
