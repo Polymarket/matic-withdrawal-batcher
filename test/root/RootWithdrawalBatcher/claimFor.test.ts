@@ -78,7 +78,9 @@ describe("RootWithdrawalBatcher", function () {
       it("reverts", async function () {
         const adminSigner = await ethers.getNamedSigner("admin");
         const badSignature = await adminSigner.signMessage("I'm not the balanceOwner");
-        expect(rootBatcher.claimFor(balanceOwner, [], badSignature)).to.be.revertedWith("Invalid signature");
+        expect(rootBatcher.claimFor(balanceOwner, [], badSignature)).to.be.revertedWith(
+          "Batcher: distribution not signed by balanceOwner",
+        );
       });
     });
 
@@ -92,7 +94,7 @@ describe("RootWithdrawalBatcher", function () {
 
       it("reverts", async function () {
         expect(rootBatcher.claimFor(balanceOwner, claims, signature)).to.be.revertedWith(
-          "Can't perform internal transfer to balanceOwner",
+          "Batcher: internal transfer to balanceOwner disallowed",
         );
       });
     });
@@ -110,7 +112,7 @@ describe("RootWithdrawalBatcher", function () {
 
       it("reverts", async function () {
         expect(rootBatcher.claimFor(balanceOwner, claims, signature)).to.be.revertedWith(
-          "balancerOwner's balance not sufficient to cover claim",
+          "Batcher: distribution amount exceeds balancerOwner's balance",
         );
       });
     });

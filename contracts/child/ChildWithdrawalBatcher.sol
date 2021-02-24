@@ -62,7 +62,7 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
      */
     function withdraw(uint256 amount) external {
         uint256 userBalance = balanceOf[msg.sender];
-        require(userBalance >= amount, "Insufficient balance for withdrawal");
+        require(userBalance >= amount, "Batcher: Insufficient balance for withdrawal");
         balanceOf[msg.sender] =  userBalance - amount;
         
         require(withdrawalToken.transfer(msg.sender, amount), "Token transfer failed");
@@ -81,7 +81,7 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
      */
     function bridgeWithdrawals(bytes32[] calldata encodedWithdrawals) external {
         // Prevents exhausting gas limit on Ethereum by including many small withdrawals to different recipients
-        require(encodedWithdrawals.length <= maxWithdrawalRecipients, "Too many recipients");
+        require(encodedWithdrawals.length <= maxWithdrawalRecipients, "Batcher: Too many recipients");
 
         uint256 totalWithdrawalAmount;
         // Calculate amount of funds to be bridged for withdrawals
@@ -91,12 +91,12 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
 
             // Enforce that full balance of recipient is used
             // This prevents attacks by malicious bridgers fragmenting users' funds over many withdrawals
-            require(balanceOf[recipient] == withdrawalAmount, "Must withdraw all of user's balance");
+            require(balanceOf[recipient] == withdrawalAmount, "Batcher: Must withdraw all of user's balance");
             balanceOf[recipient] = 0;
         }
 
         // Prevents gas costs of claiming withdrawals outweighing withdrawal value
-        require(totalWithdrawalAmount >= minWithdrawalAmount, "Withdrawal below minimum amount");
+        require(totalWithdrawalAmount >= minWithdrawalAmount, "Batcher: Withdrawal below minimum amount");
 
         // Withdraw the amount of funds needed for newly processed withdrawals
         withdrawalToken.withdraw(totalWithdrawalAmount);

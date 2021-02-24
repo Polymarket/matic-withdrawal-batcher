@@ -56,8 +56,8 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
     function claim(uint256 claimAmount) public {
         uint256 balance = balanceOf[msg.sender];
         balanceOf[msg.sender] = balance - claimAmount;
-        require(balance >= claimAmount, "Balance not sufficient to cover claim");
-        require(withdrawalToken.transfer(msg.sender, claimAmount), "Token transfer failed");
+        require(balance >= claimAmount, "Batcher: balance not sufficient to cover claim");
+        require(withdrawalToken.transfer(msg.sender, claimAmount), "Batcher: token transfer failed");
 
         emit FundsClaimed(msg.sender, claimAmount);
     }
@@ -82,17 +82,17 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
         for (uint256 i = 0; i < claims.length; i += 1){
             // Decrease balanceOwner's balance
             uint256 claimAmount = claims[i].amount;
-            require(balance >= claimAmount, "balancerOwner's balance not sufficient to cover claim");
+            require(balance >= claimAmount, "Batcher: distribution amount exceeds balancerOwner's balance");
             balance -= claimAmount;
             
             // Send funds to claimReceiver
             if (claims[i].internalClaim) {
                 // An internal claim to the balanceOwner will result in loss of funds as the temporary balance isn't increased
                 // It's also a no-op so we just disallow it.
-                require(claims[i].recipient != balanceOwner, "Can't perform internal transfer to balanceOwner");
+                require(claims[i].recipient != balanceOwner, "Batcher: internal transfer to balanceOwner disallowed");
                 balanceOf[claims[i].recipient] += claimAmount;
             } else {
-                require(withdrawalToken.transfer(claims[i].recipient, claimAmount), "Token transfer failed");
+                require(withdrawalToken.transfer(claims[i].recipient, claimAmount), "Batcher: token transfer failed");
             }
         }
      
@@ -158,7 +158,7 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
             )
         ));
         claimNonce[balanceOwner] = currentNonce + 1;
-        require(balanceOwner == ECDSA.recover(digest, signature), "Invalid signature");
+        require(balanceOwner == ECDSA.recover(digest, signature), "Batcher: distribution not signed by balanceOwner");
         return true;
     }
 
