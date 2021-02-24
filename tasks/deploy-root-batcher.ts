@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 import { AddressZero } from "@ethersproject/constants";
-import { ChainId } from "../config/constants";
+import { ChainId } from "../config";
 import { TASK_DEPLOY_ROOT } from "./task-names";
 
 task(TASK_DEPLOY_ROOT, "Deploys a RootWithdrawalBatcher contract to the selected network")

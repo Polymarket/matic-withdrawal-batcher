@@ -1,45 +1,25 @@
 import { HardhatUserConfig } from "hardhat/config";
-import { NetworkUserConfig } from "hardhat/types";
-import { ChainId } from "./config/constants";
-import { mnemonic, infuraApiKey, maticVigilApiKey } from "./config/env";
+import { ChainId, getRemoteNetworkConfig, mnemonic } from "./config";
+
 import "./tasks/accounts";
 import "./tasks/clean";
 import "./tasks/deploy-child-batcher";
 import "./tasks/deploy-root-batcher";
 
 import "hardhat-deploy";
-import "hardhat-deploy-ethers";
+// To make hardhat-waffle compatible with hardhat-deploy
+// we have aliased hardhat-ethers to hardhat-ethers-deploy in package.json
+import "@nomiclabs/hardhat-waffle";
 import "hardhat-gas-reporter";
 import "hardhat-typechain";
 import "solidity-coverage";
 
-function createTestnetConfig(network: keyof typeof ChainId): NetworkUserConfig {
-  const url = `https://${network}.infura.io/v3/${infuraApiKey}`;
-  return {
-    accounts: {
-      count: 10,
-      initialIndex: 0,
-      mnemonic,
-      path: "m/44'/60'/0'/0",
-    },
-    chainId: ChainId[network],
-    url,
-  };
-}
-
-function createMaticVigilConfig(network: keyof typeof ChainId): NetworkUserConfig {
-  const url = `https://rpc-${network}.maticvigil.com/v1/${maticVigilApiKey}`;
-  return {
-    accounts: {
-      count: 10,
-      initialIndex: 0,
-      mnemonic,
-      path: "m/44'/60'/0'/0",
-    },
-    chainId: ChainId[network],
-    url,
-  };
-}
+const accounts = {
+  count: 10,
+  initialIndex: 0,
+  mnemonic,
+  path: "m/44'/60'/0'/0",
+};
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -50,8 +30,8 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: ChainId.hardhat,
     },
-    goerli: createTestnetConfig("goerli"),
-    mumbai: createMaticVigilConfig("mumbai"),
+    goerli: { accounts, ...getRemoteNetworkConfig("goerli") },
+    mumbai: { accounts, ...getRemoteNetworkConfig("mumbai") },
   },
   paths: {
     artifacts: "./artifacts",

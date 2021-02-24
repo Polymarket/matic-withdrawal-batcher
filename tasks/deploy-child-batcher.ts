@@ -1,5 +1,5 @@
 import { task } from "hardhat/config";
-import { ChainId } from "../config/constants";
+import { ChainId } from "../config";
 import { MAX_UINT96 } from "../test/helpers/constants";
 import { TASK_DEPLOY_CHILD } from "./task-names";
 
