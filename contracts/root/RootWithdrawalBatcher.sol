@@ -87,7 +87,8 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
             
             // Send funds to claimReceiver
             if (claims[i].internalClaim) {
-                // An internal claim to the balanceOwner will result in loss of funds
+                // An internal claim to the balanceOwner will result in loss of funds as the temporary balance isn't increased
+                // It's also a no-op so we just disallow it.
                 require(claims[i].recipient != balanceOwner, "Can't perform internal transfer to balanceOwner");
                 balanceOf[claims[i].recipient] += claimAmount;
             } else {
