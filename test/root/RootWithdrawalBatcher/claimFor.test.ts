@@ -13,6 +13,12 @@ import { Claim, signDistribution } from "../../helpers/distributionSignatures";
 
 const { expect } = chai;
 
+// Signers given by hardhat aren't flexible enough to perform the signature we need
+// Private key holds zero funds
+const JUNK_PRIVATE_KEY = "0xb284432e507043ac619a61aaadcea677f013c3c2300f8aea3a449f4d1b1fb524";
+const balanceOwnerWallet = new Wallet(JUNK_PRIVATE_KEY);
+const balanceOwner = balanceOwnerWallet.address;
+
 const setup = deployments.createFixture(async () => {
   await deployments.fixture(["Matic"]);
   const checkpointManager = (await ethers.getContract("MockCheckpointManager")) as MockCheckpointManager;
@@ -26,6 +32,22 @@ const setup = deployments.createFixture(async () => {
     args: [token.address, checkpointManager.address, childBatcher.address],
   })) as RootWithdrawalBatcher;
 
+  const { admin } = await getNamedAccounts();
+
+  // Deposit funds onto ChildWithdrawalBatcher and burn them so that receipt is included in a block for a proof
+  await token["mint(address,uint256)"](admin, MAX_UINT96);
+  await token.approve(childBatcher.address, MAX_UINT96);
+  const deposits: [string, string][] = [[balanceOwner, "100"]];
+  const bridgeFundsReceipt = await depositFunds(childBatcher, deposits);
+
+  // Create a checkpoint containing the deposited funds and process it
+  // This assigns internal balances
+  const bridgeMessage = await buildBridgeFundsProof(bridgeFundsReceipt.transactionHash, checkpointManager);
+  await rootBatcher.receiveMessage(bridgeMessage);
+
+  // We mint some tokens to the rootBatcher to simulate an exit from Matic
+  await token["mint(address,uint256)"](rootBatcher.address, MAX_UINT96);
+
   return {
     checkpointManager,
     childBatcher,
@@ -34,36 +56,14 @@ const setup = deployments.createFixture(async () => {
   };
 });
 
-// Signers given by hardhat aren't flexible enough to perform the signature we need
-// Private key holds zero funds
-const JUNK_PRIVATE_KEY = "0xb284432e507043ac619a61aaadcea677f013c3c2300f8aea3a449f4d1b1fb524";
-const balanceOwnerWallet = new Wallet(JUNK_PRIVATE_KEY);
-const balanceOwner = balanceOwnerWallet.address;
-
 describe("RootWithdrawalBatcher", function () {
   let rootBatcher: RootWithdrawalBatcher;
   let token: TestERC20;
-  let admin: string;
   let domain: TypedDataDomain;
   beforeEach(async function () {
     const deployment = await setup();
     rootBatcher = deployment.rootBatcher;
     token = deployment.token;
-
-    const { checkpointManager, childBatcher } = deployment;
-    const namedAccounts = await getNamedAccounts();
-    admin = namedAccounts.admin;
-
-    const deposits: [string, string][] = [[balanceOwner, "100"]];
-
-    await token["mint(address,uint256)"](admin, MAX_UINT96);
-    await token.approve(childBatcher.address, MAX_UINT96);
-    await token["mint(address,uint256)"](rootBatcher.address, MAX_UINT96);
-
-    const bridgeFundsReceipt = await depositFunds(childBatcher, deposits);
-
-    const bridgeMessage = await buildBridgeFundsProof(bridgeFundsReceipt.transactionHash, checkpointManager);
-    await rootBatcher.receiveMessage(bridgeMessage);
 
     domain = {
       name: "RootWithdrawalBatcher",
