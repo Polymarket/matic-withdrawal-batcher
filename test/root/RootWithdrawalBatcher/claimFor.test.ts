@@ -1,13 +1,15 @@
 /* eslint-disable func-names */
 import { deployments, ethers, getNamedAccounts, network } from "hardhat";
 import { BigNumber } from "@ethersproject/bignumber";
-import { Zero } from "@ethersproject/constants";
+import { AddressZero, Zero } from "@ethersproject/constants";
 import { Wallet } from "ethers";
+import { TypedDataDomain } from "@ethersproject/abstract-signer";
 import { ChildWithdrawalBatcher, MockCheckpointManager, RootWithdrawalBatcher, TestERC20 } from "../../../typechain";
 import { chai, deploy } from "../../helpers";
 import { MAX_UINT96 } from "../../helpers/constants";
 import { buildBridgeFundsProof } from "../../helpers/bridgeProof";
 import { depositFunds } from "../../helpers/deposit";
+import { Claim, signDistribution } from "../../helpers/distributionSignatures";
 
 const { expect } = chai;
 
@@ -42,6 +44,7 @@ describe("RootWithdrawalBatcher", function () {
   let rootBatcher: RootWithdrawalBatcher;
   let token: TestERC20;
   let admin: string;
+  let domain: TypedDataDomain;
   beforeEach(async function () {
     const deployment = await setup();
     rootBatcher = deployment.rootBatcher;
@@ -61,60 +64,136 @@ describe("RootWithdrawalBatcher", function () {
 
     const bridgeMessage = await buildBridgeFundsProof(bridgeFundsReceipt.transactionHash, checkpointManager);
     await rootBatcher.receiveMessage(bridgeMessage);
+
+    domain = {
+      name: "RootWithdrawalBatcher",
+      version: "1",
+      chainId: network.config.chainId,
+      verifyingContract: rootBatcher.address,
+    };
   });
 
-  describe.only("claimFor", function () {
-    const claims = [{ recipient: balanceOwner, amount: "100", internalClaim: false }];
-    let signature: string;
-
-    beforeEach("User signs approval for claim", async function () {
-      if (network.config.chainId === undefined) {
-        throw Error("No chainId");
-      }
-
-      const domain = {
-        name: "RootWithdrawalBatcher",
-        version: "1",
-        chainId: network.config.chainId,
-        verifyingContract: rootBatcher.address,
-      };
-      const types = {
-        ClaimDistribution: [
-          { name: "balanceOwner", type: "address" },
-          { name: "claims", type: "Claim[]" },
-          { name: "nonce", type: "uint256" },
-        ],
-        Claim: [
-          { name: "recipient", type: "address" },
-          { name: "amount", type: "uint256" },
-          { name: "internalClaim", type: "bool" },
-        ],
-      };
-      const value = {
-        balanceOwner,
-        claims,
-        nonce: 0,
-      };
-
-      // eslint-disable-next-line no-underscore-dangle
-      signature = await balanceOwnerWallet._signTypedData(domain, types, value);
+  describe("claimFor", function () {
+    describe("Claim with an invalid signature", function () {
+      it("reverts", async function () {
+        const adminSigner = await ethers.getNamedSigner("admin");
+        const badSignature = await adminSigner.signMessage("I'm not the balanceOwner");
+        expect(rootBatcher.claimFor(balanceOwner, [], badSignature)).to.be.revertedWith("Invalid signature");
+      });
     });
 
-    it("transfers the expected amount to the recipient", async function () {
-      const userBalanceBefore = await token.balanceOf(claims[0].recipient);
-      await rootBatcher.claimFor(balanceOwner, claims, signature);
-      const userBalanceAfter = await token.balanceOf(claims[0].recipient);
+    describe("Claim including an internal transfer to balanceOwner", function () {
+      const claims: Claim[] = [{ recipient: balanceOwner, amount: "100", internalClaim: true }];
+      let signature: string;
 
-      expect(userBalanceAfter.sub(userBalanceBefore)).to.eq(claims[0].amount);
+      beforeEach("User signs approval for claim", async function () {
+        signature = await signDistribution(balanceOwnerWallet, domain, claims);
+      });
+
+      it("reverts", async function () {
+        expect(rootBatcher.claimFor(balanceOwner, claims, signature)).to.be.revertedWith(
+          "Can't perform internal transfer to balanceOwner",
+        );
+      });
     });
 
-    it("it reduces the balanceOwner's internal balance by the total claim amount", async function () {
-      const internalBalanceBefore = await rootBatcher.balanceOf(balanceOwner);
-      await rootBatcher.claimFor(balanceOwner, claims, signature);
-      const internalBalanceAfter = await rootBatcher.balanceOf(balanceOwner);
+    describe("When claim distribution size exceeds balanceOwner's balance", function () {
+      const claims: Claim[] = [
+        { recipient: balanceOwner, amount: "100", internalClaim: false },
+        { recipient: balanceOwner, amount: "1", internalClaim: false },
+      ];
+      let signature: string;
 
-      const totalClaimAmount = claims.reduce((acc, claim) => BigNumber.from(acc).add(claim.amount), Zero);
-      expect(internalBalanceBefore.sub(internalBalanceAfter)).to.be.eq(totalClaimAmount);
+      beforeEach("User signs approval for claim", async function () {
+        signature = await signDistribution(balanceOwnerWallet, domain, claims);
+      });
+
+      it("reverts", async function () {
+        expect(rootBatcher.claimFor(balanceOwner, claims, signature)).to.be.revertedWith(
+          "balancerOwner's balance not sufficient to cover claim",
+        );
+      });
+    });
+
+    describe("Simple claim to single address", function () {
+      const claims: Claim[] = [{ recipient: balanceOwner, amount: "100", internalClaim: false }];
+      let signature: string;
+
+      beforeEach("User signs approval for claim", async function () {
+        signature = await signDistribution(balanceOwnerWallet, domain, claims);
+      });
+
+      it("transfers the expected amount to the recipient", async function () {
+        const userBalanceBefore = await token.balanceOf(claims[0].recipient);
+        await rootBatcher.claimFor(balanceOwner, claims, signature);
+        const userBalanceAfter = await token.balanceOf(claims[0].recipient);
+
+        expect(userBalanceAfter.sub(userBalanceBefore)).to.eq(claims[0].amount);
+      });
+
+      it("it reduces the balanceOwner's internal balance by the total claim amount", async function () {
+        const internalBalanceBefore = await rootBatcher.balanceOf(balanceOwner);
+        await rootBatcher.claimFor(balanceOwner, claims, signature);
+        const internalBalanceAfter = await rootBatcher.balanceOf(balanceOwner);
+
+        const totalClaimAmount = claims.reduce((acc, claim) => BigNumber.from(acc).add(claim.amount), Zero);
+        expect(internalBalanceBefore.sub(internalBalanceAfter)).to.be.eq(totalClaimAmount);
+      });
+
+      it("increments the balanceOwner's nonce", async function () {
+        const nonceBefore = await rootBatcher.claimNonce(balanceOwner);
+        await rootBatcher.claimFor(balanceOwner, claims, signature);
+        const nonceAfter = await rootBatcher.claimNonce(balanceOwner);
+
+        expect(nonceAfter.sub(nonceBefore)).to.eq(1);
+      });
+    });
+
+    describe("Simple claim with internal fee", function () {
+      const claims: Claim[] = [
+        { recipient: balanceOwner, amount: "50", internalClaim: false },
+        { recipient: AddressZero, amount: "50", internalClaim: true },
+      ];
+      let signature: string;
+
+      beforeEach("User signs approval for claim", async function () {
+        signature = await signDistribution(balanceOwnerWallet, domain, claims);
+      });
+
+      it("transfers the expected amount to the recipient", async function () {
+        const { amount, recipient } = claims[0];
+        const userBalanceBefore = await token.balanceOf(recipient);
+        await rootBatcher.claimFor(balanceOwner, claims, signature);
+        const userBalanceAfter = await token.balanceOf(recipient);
+
+        expect(userBalanceAfter.sub(userBalanceBefore)).to.eq(amount);
+      });
+
+      it("transfers the expected amount to fee taker's internal balance", async function () {
+        const { amount, recipient } = claims[1];
+        const feeTakerInternalBalanceBefore = await rootBatcher.balanceOf(recipient);
+        await rootBatcher.claimFor(balanceOwner, claims, signature);
+        const feeTakerInternalBalanceAfter = await rootBatcher.balanceOf(recipient);
+
+        expect(feeTakerInternalBalanceAfter.sub(feeTakerInternalBalanceBefore)).to.eq(amount);
+      });
+
+      it("it reduces the balanceOwner's internal balance by the total claim amount", async function () {
+        const internalBalanceBefore = await rootBatcher.balanceOf(balanceOwner);
+        await rootBatcher.claimFor(balanceOwner, claims, signature);
+        const internalBalanceAfter = await rootBatcher.balanceOf(balanceOwner);
+
+        const totalClaimAmount = claims.reduce((acc, claim) => BigNumber.from(acc).add(claim.amount), Zero);
+        expect(internalBalanceBefore.sub(internalBalanceAfter)).to.be.eq(totalClaimAmount);
+      });
+
+      it("increments the balanceOwner's nonce", async function () {
+        const nonceBefore = await rootBatcher.claimNonce(balanceOwner);
+        await rootBatcher.claimFor(balanceOwner, claims, signature);
+        const nonceAfter = await rootBatcher.claimNonce(balanceOwner);
+
+        expect(nonceAfter.sub(nonceBefore)).to.eq(1);
+      });
     });
   });
 });
