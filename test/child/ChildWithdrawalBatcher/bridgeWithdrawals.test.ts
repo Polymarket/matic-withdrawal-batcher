@@ -41,7 +41,7 @@ describe("ChildWithdrawalBatcher", function () {
     await token.approve(childBatcher.address, "1000000000000");
   });
 
-  describe.only("bridgeWithdrawals", function () {
+  describe("bridgeWithdrawals", function () {
     describe("when batch includes a withdrawal below the minimum size", function () {
       it("reverts", async function () {
         const badDeposits = [encodeDeposit(AddressZero, "0")];
