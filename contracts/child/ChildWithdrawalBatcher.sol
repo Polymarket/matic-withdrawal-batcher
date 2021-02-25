@@ -19,19 +19,22 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
     mapping(address => uint256) public balanceOf;
 
     // Safety parameters to prevent malicious bridging
+    uint256 public minBatchAmount;
     uint256 public minWithdrawalAmount;
     uint256 public maxWithdrawalRecipients;
 
     /**
      *
      * @param _withdrawalToken - ERC20 token which this contract is batching withdrawals for
-     * @param _minWithdrawalAmount - The minimum number of tokens which must be included in a withdrawal
+     * @param _minBatchAmount - The minimum number of tokens which must be included in a batch of withdrawals
+     * @param _minWithdrawalAmount - The minimum number of tokens which must be included in single withdrawal
      * @param _maxWithdrawalRecipients - The maximum number of recipients which can included in a single withdrawal
      */
-    constructor(IChildERC20 _withdrawalToken, uint256 _minWithdrawalAmount, uint256 _maxWithdrawalRecipients) public {
+    constructor(IChildERC20 _withdrawalToken, uint256 _minBatchAmount, uint256 _minWithdrawalAmount, uint256 _maxWithdrawalRecipients) public {
         _setupContractId("ChildWithdrawalBatcher");
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         withdrawalToken = _withdrawalToken;
+        minBatchAmount = _minBatchAmount;
         minWithdrawalAmount = _minWithdrawalAmount;
         maxWithdrawalRecipients = _maxWithdrawalRecipients;
     }
@@ -89,14 +92,19 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
             (address recipient, uint96 withdrawalAmount) = encodedWithdrawals[i].decodeDeposit();
             totalWithdrawalAmount += withdrawalAmount;
 
+            
+            // Enfore a minimum withdrawal amount 
+            // This avoids batch processing costs being inflated due to zero value withdrawals being included
+            require(withdrawalAmount > minWithdrawalAmount, "Batcher: user withdrawal amount below minimum");
+            
             // Enforce that full balance of recipient is used
             // This prevents attacks by malicious bridgers fragmenting users' funds over many withdrawals
-            require(balanceOf[recipient] == withdrawalAmount, "Batcher: Must withdraw all of user's balance");
+            require(balanceOf[recipient] == withdrawalAmount, "Batcher: withdrawal size must match user's balance");
             balanceOf[recipient] = 0;
         }
 
         // Prevents gas costs of claiming withdrawals outweighing withdrawal value
-        require(totalWithdrawalAmount >= minWithdrawalAmount, "Batcher: Withdrawal below minimum amount");
+        require(totalWithdrawalAmount >= minBatchAmount, "Batcher: Batch size below minimum amount");
 
         // Withdraw the amount of funds needed for newly processed withdrawals
         withdrawalToken.withdraw(totalWithdrawalAmount);

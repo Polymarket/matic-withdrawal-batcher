@@ -11,7 +11,7 @@ const setup = deployments.createFixture(async () => {
   const token = (await ethers.getContract("TestERC20")) as TestERC20;
 
   const childBatcher = (await deploy("ChildWithdrawalBatcher", {
-    args: [token.address, 100, 100],
+    args: [token.address, 100, 1, 100],
   })) as ChildWithdrawalBatcher;
 
   return {
