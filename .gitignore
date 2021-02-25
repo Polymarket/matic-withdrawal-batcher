@@ -7,7 +7,7 @@ build/
 cache/
 coverage/
 dist/
-lib/
+./lib/
 node_modules/
 typechain/
 
