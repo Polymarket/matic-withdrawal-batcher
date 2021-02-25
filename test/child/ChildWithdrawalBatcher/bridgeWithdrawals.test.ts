@@ -1,6 +1,7 @@
 /* eslint-disable func-names */
 import { deployments, ethers, getNamedAccounts } from "hardhat";
-import { BigNumber } from "ethers";
+import { BigNumber } from "@ethersproject/bignumber";
+import { hexZeroPad } from "@ethersproject/bytes";
 import { AddressZero, Zero } from "@ethersproject/constants";
 import { ChildWithdrawalBatcher, TestERC20 } from "../../../typechain";
 import { chai, deploy, encodeDeposit, encodeDepositMessage } from "../../helpers";
@@ -71,6 +72,26 @@ describe("ChildWithdrawalBatcher", function () {
             "Batcher: withdrawal size must match user's balance",
           );
         });
+      });
+    });
+
+    describe("when batch includes more than the maximum number of withdrawals", function () {
+      const badDeposits: [string, string][] = Array.from({ length: MAX_WITHDRAWAL_RECIPIENTS + 1 }, (_, index) => [
+        hexZeroPad(BigNumber.from(index).toHexString(), 20),
+        "10",
+      ]);
+      beforeEach("Seed with deposits", async function () {
+        for (let i = 0; i < badDeposits.length; i += 1) {
+          const [currentRecipient, currentAmount] = badDeposits[i];
+          // eslint-disable-next-line no-await-in-loop
+          await childBatcher.depositFor(currentRecipient, currentAmount);
+        }
+      });
+      it("reverts", async function () {
+        const encodedBadDeposits = badDeposits.map(deposit => encodeDeposit(...deposit));
+        await expect(childBatcher.bridgeWithdrawals(encodedBadDeposits)).to.be.revertedWith(
+          "Batcher: Too many recipients included in batch",
+        );
       });
     });
 

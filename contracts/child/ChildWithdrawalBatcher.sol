@@ -84,7 +84,7 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
      */
     function bridgeWithdrawals(bytes32[] calldata encodedWithdrawals) external {
         // Prevents exhausting gas limit on Ethereum by including many small withdrawals to different recipients
-        require(encodedWithdrawals.length <= maxWithdrawalRecipients, "Batcher: Too many recipients");
+        require(encodedWithdrawals.length <= maxWithdrawalRecipients, "Batcher: Too many recipients included in batch");
 
         uint256 totalWithdrawalAmount;
         // Calculate amount of funds to be bridged for withdrawals
