@@ -12,7 +12,7 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
 
     event Deposit(address indexed depositor, address indexed recipient, uint256 amount);
     event Withdrawal(address indexed recipient, uint256 amount);
-    event BridgedWithdrawals(address indexed bridger, bytes withdrawalMessage, uint256 amount);
+    event BridgedWithdrawals(address indexed bridger, bytes32[] encodedDeposits, uint256 amount);
 
     IChildERC20 public immutable withdrawalToken;
 
@@ -110,10 +110,9 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
         withdrawalToken.withdraw(totalWithdrawalAmount);
 
         // Send a message to contract on Ethereum to allow recipients to withdraw
-        bytes memory withdrawalMessage = abi.encodePacked(encodedWithdrawals);
-        _sendMessageToRoot(withdrawalMessage);
+        _sendMessageToRoot(abi.encodePacked(encodedWithdrawals));
 
-        emit BridgedWithdrawals(msg.sender, withdrawalMessage, totalWithdrawalAmount);
+        emit BridgedWithdrawals(msg.sender, encodedWithdrawals, totalWithdrawalAmount);
     }
 
     function setMinWithdrawalAmount(uint256 _minWithdrawalAmount) external only(DEFAULT_ADMIN_ROLE) {

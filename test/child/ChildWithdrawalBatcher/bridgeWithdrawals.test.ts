@@ -137,7 +137,7 @@ describe("ChildWithdrawalBatcher", function () {
       it("emits a BridgedWithdrawals event", async function () {
         expect(await childBatcher.bridgeWithdrawals(encodedDeposits))
           .to.emit(childBatcher, "BridgedWithdrawals")
-          .withArgs(admin, expectedDepositMessage, totalDepositAmount);
+          .withArgs(admin, encodedDeposits, totalDepositAmount);
       });
 
       it("sets the balances of users who have had funds bridged to zero", async function () {
