@@ -136,6 +136,10 @@ contract ChildWithdrawalBatcher is EIP712, AccessControlMixin, ChildSendOnlyTunn
         emit BridgedWithdrawals(msg.sender, encodedWithdrawals, totalWithdrawalAmount);
     }
 
+    function setMinBatchAmount(uint256 _minBatchAmount) external only(DEFAULT_ADMIN_ROLE) {
+        minBatchAmount = _minBatchAmount;
+    }
+
     function setMinWithdrawalAmount(uint256 _minWithdrawalAmount) external only(DEFAULT_ADMIN_ROLE) {
         minWithdrawalAmount = _minWithdrawalAmount;
     }
