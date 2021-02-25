@@ -77,13 +77,13 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
         }
 
         uint256 initialBalance = balanceOf[balanceOwner];
-        uint256 balance = initialBalance;
+        uint256 tempBalance = initialBalance;
         // Distribute funds
         for (uint256 i = 0; i < claims.length; i += 1){
             // Decrease balanceOwner's balance
             uint256 claimAmount = claims[i].amount;
-            require(balance >= claimAmount, "Batcher: distribution amount exceeds balancerOwner's balance");
-            balance -= claimAmount;
+            require(tempBalance >= claimAmount, "Batcher: distribution amount exceeds balancerOwner's balance");
+            tempBalance -= claimAmount;
             
             // Send funds to claimReceiver
             if (claims[i].internalClaim) {
@@ -96,8 +96,8 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
             }
         }
      
-        balanceOf[balanceOwner] = balance;
-        emit FundsClaimed(balanceOwner, initialBalance - balance);
+        balanceOf[balanceOwner] = tempBalance;
+        emit FundsClaimed(balanceOwner, initialBalance - tempBalance);
     }
 
     /**
