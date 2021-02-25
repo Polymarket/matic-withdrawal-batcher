@@ -93,7 +93,7 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
             totalWithdrawalAmount += withdrawalAmount;
 
             
-            // Enfore a minimum withdrawal amount 
+            // Enforce a minimum withdrawal amount 
             // This avoids batch processing costs being inflated due to zero value withdrawals being included
             require(withdrawalAmount > minWithdrawalAmount, "Batcher: user withdrawal amount below minimum");
             
