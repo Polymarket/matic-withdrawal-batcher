@@ -2,21 +2,26 @@
 
 pragma solidity 0.6.8;
 
+import { ECDSA } from "@openzeppelin/contracts/cryptography/ECDSA.sol";
+import { EIP712 } from "@openzeppelin/contracts/drafts/EIP712.sol";
 import { AccessControlMixin } from "../common/Matic/AccessControlMixin.sol";
 import { IChildERC20 } from "./interfaces/IChildERC20.sol";
 import { ChildSendOnlyTunnel } from "./ChildSendOnlyTunnel.sol";
 import { DepositEncoder } from "../common/DepositEncoder.sol";
 
-contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
+contract ChildWithdrawalBatcher is EIP712, AccessControlMixin, ChildSendOnlyTunnel {
     using DepositEncoder for bytes32;
 
     event Deposit(address indexed depositor, address indexed recipient, uint256 amount);
-    event Withdrawal(address indexed recipient, uint256 amount);
+    event Withdrawal(address indexed balanceOwner, address indexed withdrawalReceiver, uint256 amount);
     event BridgedWithdrawals(address indexed bridger, bytes32[] encodedDeposits, uint256 amount);
+
+    bytes32 constant WITHDRAWAL_TYPEHASH = keccak256("Withdrawal(address balanceOwner,address withdrawalReceiver,uint256 amount,uint256 nonce)");
 
     IChildERC20 public immutable withdrawalToken;
 
     mapping(address => uint256) public balanceOf;
+    mapping(address=>uint256) public withdrawalNonce;
 
     // Safety parameters to prevent malicious bridging
     uint256 public minBatchAmount;
@@ -30,7 +35,10 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
      * @param _minWithdrawalAmount - The minimum number of tokens which must be included in single withdrawal
      * @param _maxWithdrawalRecipients - The maximum number of recipients which can included in a single withdrawal
      */
-    constructor(IChildERC20 _withdrawalToken, uint256 _minBatchAmount, uint256 _minWithdrawalAmount, uint256 _maxWithdrawalRecipients) public {
+    constructor(IChildERC20 _withdrawalToken, uint256 _minBatchAmount, uint256 _minWithdrawalAmount, uint256 _maxWithdrawalRecipients)
+        public
+        EIP712("ChildWithdrawalBatcher", "1")
+    {
         _setupContractId("ChildWithdrawalBatcher");
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         withdrawalToken = _withdrawalToken;
@@ -64,12 +72,25 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
      * @param amount - amount of funds to be withdrawn for recipient
      */
     function withdraw(uint256 amount) external {
-        uint256 userBalance = balanceOf[msg.sender];
-        require(userBalance >= amount, "Batcher: Insufficient balance for withdrawal");
-        balanceOf[msg.sender] =  userBalance - amount;
+        withdrawFor(msg.sender, msg.sender, amount, "");
+    }
+
+    /**
+     * Withdraws from user's internal balance back to their account on Matic
+     * @param amount - amount of funds to be withdrawn for recipient
+     */
+    function withdrawFor(address balanceOwner, address withdrawalReceiver, uint256 amount, bytes memory signature) public {
+        if (msg.sender != balanceOwner) {
+            verifyWithdrawalSignature(balanceOwner, withdrawalReceiver, amount, signature);
+        }
+
+        uint256 userBalance = balanceOf[balanceOwner];
         
-        require(withdrawalToken.transfer(msg.sender, amount), "Token transfer failed");
-        emit Withdrawal(msg.sender, amount);
+        require(userBalance >= amount, "Batcher: Insufficient balance for withdrawal");
+        balanceOf[balanceOwner] =  userBalance - amount;
+        
+        require(withdrawalToken.transfer(withdrawalReceiver, amount), "Token transfer failed");
+        emit Withdrawal(balanceOwner, withdrawalReceiver, amount);
     }
 
     /**
@@ -121,5 +142,26 @@ contract ChildWithdrawalBatcher is AccessControlMixin, ChildSendOnlyTunnel {
 
     function setMaxWithdrawalRecipients(uint256 _maxWithdrawalRecipients) external only(DEFAULT_ADMIN_ROLE) {
         maxWithdrawalRecipients = _maxWithdrawalRecipients;
+    }
+
+    /**
+     * @notice verifies a signature by the balanceOwner authorising a claim on their funds
+     * @param balanceOwner - the address of the owner of the funds which is being claimed
+     * @param signature - a signature by the balanceOwner authorising this distribution
+     */
+    function verifyWithdrawalSignature(address balanceOwner, address withdrawalReceiver, uint256 amount, bytes memory signature) private returns (bool) {
+        uint256 currentNonce = withdrawalNonce[balanceOwner];
+        bytes32 digest = _hashTypedDataV4(keccak256(
+            abi.encode(
+                WITHDRAWAL_TYPEHASH,
+                balanceOwner,
+                withdrawalReceiver,
+                amount,
+                currentNonce
+            )
+        ));
+        withdrawalNonce[balanceOwner] = currentNonce + 1;
+        require(balanceOwner == ECDSA.recover(digest, signature), "Batcher: withdrawal not signed by balanceOwner");
+        return true;
     }
 }

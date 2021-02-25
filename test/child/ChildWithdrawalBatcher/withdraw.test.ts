@@ -75,7 +75,7 @@ describe("ChildWithdrawalBatcher", function () {
         it("emits a Withdrawal event", async function () {
           expect(await childBatcher.withdraw(amount))
             .to.emit(childBatcher, "Withdrawal")
-            .withArgs(admin, amount);
+            .withArgs(admin, admin, amount);
         });
       });
     });
