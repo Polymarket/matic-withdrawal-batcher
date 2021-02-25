@@ -91,7 +91,7 @@ describe("RootWithdrawalBatcher", function () {
 
       it("reverts", async function () {
         expect(rootBatcher.claimFor(balanceOwner, claims, signature)).to.be.revertedWith(
-          "Batcher: distribution amount exceeds balancerOwner's balance",
+          "Batcher: distribution amount exceeds balanceOwner's balance",
         );
       });
     });

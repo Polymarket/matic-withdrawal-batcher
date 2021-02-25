@@ -82,7 +82,7 @@ contract RootWithdrawalBatcher is EIP712, RootWithdrawalBatcherTunnel {
         for (uint256 i = 0; i < claims.length; i += 1){
             // Decrease balanceOwner's balance
             uint256 claimAmount = claims[i].amount;
-            require(tempBalance >= claimAmount, "Batcher: distribution amount exceeds balancerOwner's balance");
+            require(tempBalance >= claimAmount, "Batcher: distribution amount exceeds balanceOwner's balance");
             tempBalance -= claimAmount;
             
             // Send funds to claimReceiver
