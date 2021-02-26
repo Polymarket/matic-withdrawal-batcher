@@ -1,6 +1,6 @@
 /* eslint-disable func-names */
 import { AddressZero } from "@ethersproject/constants";
-import { deployments, ethers, getNamedAccounts } from "hardhat";
+import { deployments, ethers } from "hardhat";
 import { ChildWithdrawalBatcher } from "../../../typechain";
 import { chai, deploy } from "../../helpers";
 

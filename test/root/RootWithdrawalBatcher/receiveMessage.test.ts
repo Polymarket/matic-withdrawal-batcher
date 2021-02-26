@@ -1,5 +1,5 @@
 /* eslint-disable func-names */
-import { deployments, ethers, getNamedAccounts, network } from "hardhat";
+import { deployments, ethers, getNamedAccounts } from "hardhat";
 import { BigNumber } from "ethers";
 import { Zero } from "@ethersproject/constants";
 import { hexZeroPad } from "@ethersproject/bytes";
