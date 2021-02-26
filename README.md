@@ -34,6 +34,7 @@ Each of these require verifying a Merkle proof + Merkle-Patricia proof on chain,
 **Final cost:** ~300,000 gas fixed cost + ~69000 gas per recipient
 
 The increased overhead from the passing the extra message from Matic to Ethereum is then offset when including 3 or more recipients in a batched withdrawal.
+For batches containing 250 withdrawals, this costs approx 6 million gas to bridge + process at which point the fixed costs are amortised to the point of being negligible.
 
 ## Possible Attacks
 
