@@ -1,4 +1,4 @@
-# Matic Bridge Batcher
+# Matic Withdrawal Batcher
 
 A set of contracts which allows non-custodial batching of withdrawals of ERC20 tokens from Matic network.
 
